@@ -79,3 +79,15 @@ export async function getUserOrganizations(): Promise<Organization[]> {
     role: item.role
   }));
 }
+
+export async function getCurrentOrganization(): Promise<Organization | null> {
+  const activeOrgId = localStorage.getItem('activeOrgId');
+  if (!activeOrgId) {
+    const orgs = await getUserOrganizations();
+    return orgs[0] || null;
+  }
+
+  const orgs = await getUserOrganizations();
+  const org = orgs.find(o => o.id === activeOrgId);
+  return org || orgs[0] || null;
+}
