@@ -25,12 +25,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import { 
   Home, 
-  Edit2, 
   MessageSquare, 
   Paperclip,
   Eye,
-  Trash2,
-  Send
+  Send,
+  Download,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { CreateTaskDialog } from "@/components/CreateTaskDialog";
@@ -96,10 +96,16 @@ interface Watcher {
   user_name: string | null;
 }
 
+interface OrgMember {
+  id: string;
+  email: string;
+}
+
 const TaskDetails = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<TaskDetails | null>(null);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
@@ -107,12 +113,17 @@ const TaskDetails = () => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [watchers, setWatchers] = useState<Watcher[]>([]);
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string }>>([]);
-  const [newComment, setNewComment] = useState("");
-  const [isWatching, setIsWatching] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
-  const [createSubtaskOpen, setCreateSubtaskOpen] = useState(false);
   const [activeOrg, setActiveOrg] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [createSubtaskOpen, setCreateSubtaskOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [isWatching, setIsWatching] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [orgMembers, setOrgMembers] = useState<OrgMember[]>([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState("");
+  const [mentionPosition, setMentionPosition] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -141,6 +152,7 @@ const TaskDetails = () => {
       loadComments(),
       loadAttachments(),
       loadWatchers(user.id),
+      loadOrgMembers(org.id),
     ]);
 
     setLoading(false);
@@ -166,18 +178,15 @@ const TaskDetails = () => {
       return;
     }
 
-    // Get assignee info
-    let assigneeEmail = null;
-    let assigneeName = null;
-    if (data.assigned_to) {
-      const { data: assigneeData } = await supabase.rpc("get_user_email", { p_user_id: data.assigned_to });
-      assigneeEmail = assigneeData;
-    }
+    // Get assignee email
+    const assigneeEmail = data.assigned_to 
+      ? (await supabase.rpc("get_user_email", { p_user_id: data.assigned_to })).data
+      : null;
 
-    // Get creator info
-    const { data: creatorEmail } = await supabase.rpc("get_user_email", { p_user_id: data.created_by });
+    // Get creator email
+    const creatorEmail = (await supabase.rpc("get_user_email", { p_user_id: data.created_by })).data;
 
-    // Get project info
+    // Get project name
     let projectName = null;
     if (data.project_id) {
       const { data: projectData } = await supabase
@@ -185,7 +194,7 @@ const TaskDetails = () => {
         .select("name")
         .eq("id", data.project_id)
         .single();
-      projectName = projectData?.name || null;
+      projectName = projectData?.name;
     }
 
     const taskData: TaskDetails = {
@@ -302,17 +311,21 @@ const TaskDetails = () => {
       const subtasksWithNames = await Promise.all(
         data.map(async (s: any) => {
           let assigneeName = null;
+          let assigneeEmail = null;
+          
           if (s.assigned_to) {
-            const { data: email } = await supabase.rpc("get_user_email", { p_user_id: s.assigned_to });
+            const email = (await supabase.rpc("get_user_email", { p_user_id: s.assigned_to })).data;
             assigneeName = email;
+            assigneeEmail = email;
           }
+
           return {
             id: s.id,
             code: s.code,
             title: s.title,
             status: s.status,
             assignee_name: assigneeName,
-            assignee_email: assigneeName,
+            assignee_email: assigneeEmail,
           };
         })
       );
@@ -329,9 +342,9 @@ const TaskDetails = () => {
       .order("created_at", { ascending: false });
 
     if (data) {
-      const commentsWithNames = await Promise.all(
+      const commentsWithUsers = await Promise.all(
         data.map(async (c: any) => {
-          const { data: email } = await supabase.rpc("get_user_email", { p_user_id: c.user_id });
+          const email = (await supabase.rpc("get_user_email", { p_user_id: c.user_id })).data;
           return {
             id: c.id,
             content: c.content,
@@ -342,7 +355,7 @@ const TaskDetails = () => {
           };
         })
       );
-      setComments(commentsWithNames);
+      setComments(commentsWithUsers);
     }
   }
 
@@ -355,9 +368,9 @@ const TaskDetails = () => {
       .order("created_at", { ascending: false });
 
     if (data) {
-      const attachmentsWithNames = await Promise.all(
+      const attachmentsWithUsers = await Promise.all(
         data.map(async (a: any) => {
-          const { data: email } = await supabase.rpc("get_user_email", { p_user_id: a.uploaded_by });
+          const email = (await supabase.rpc("get_user_email", { p_user_id: a.uploaded_by })).data;
           return {
             id: a.id,
             file_name: a.file_name,
@@ -371,7 +384,7 @@ const TaskDetails = () => {
           };
         })
       );
-      setAttachments(attachmentsWithNames);
+      setAttachments(attachmentsWithUsers);
     }
   }
 
@@ -382,9 +395,9 @@ const TaskDetails = () => {
       .eq("task_id", taskId);
 
     if (data) {
-      const watchersWithNames = await Promise.all(
+      const watchersWithUsers = await Promise.all(
         data.map(async (w: any) => {
-          const { data: email } = await supabase.rpc("get_user_email", { p_user_id: w.user_id });
+          const email = (await supabase.rpc("get_user_email", { p_user_id: w.user_id })).data;
           return {
             id: w.id,
             user_id: w.user_id,
@@ -393,8 +406,21 @@ const TaskDetails = () => {
           };
         })
       );
-      setWatchers(watchersWithNames);
-      setIsWatching(data.some((w: any) => w.user_id === userId));
+      setWatchers(watchersWithUsers);
+      setIsWatching(data.some(w => w.user_id === userId));
+    }
+  }
+
+  async function loadOrgMembers(orgId: string) {
+    const { data } = await supabase.rpc("get_org_members_with_emails", {
+      p_org_id: orgId
+    });
+
+    if (data) {
+      setOrgMembers(data.map((m: any) => ({
+        id: m.user_id,
+        email: m.email
+      })));
     }
   }
 
@@ -429,6 +455,38 @@ const TaskDetails = () => {
     }
   }
 
+  function handleCommentChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const value = e.target.value;
+    setNewComment(value);
+
+    // Check for @ mention
+    const cursorPos = e.target.selectionStart;
+    const textBeforeCursor = value.slice(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+
+    if (lastAtIndex !== -1) {
+      const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
+      if (!textAfterAt.includes(" ")) {
+        setMentionSearch(textAfterAt);
+        setMentionPosition(lastAtIndex);
+        setShowMentions(true);
+        return;
+      }
+    }
+    setShowMentions(false);
+  }
+
+  function insertMention(member: OrgMember) {
+    const before = newComment.slice(0, mentionPosition);
+    const after = newComment.slice(mentionPosition + mentionSearch.length + 1);
+    setNewComment(before + "@" + member.email + " " + after);
+    setShowMentions(false);
+  }
+
+  const filteredMembers = orgMembers.filter(m =>
+    m.email.toLowerCase().includes(mentionSearch.toLowerCase())
+  );
+
   async function handleAddComment() {
     if (!newComment.trim()) return;
 
@@ -452,6 +510,106 @@ const TaskDetails = () => {
       toast({
         title: "Success",
         description: "Comment added",
+      });
+    }
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB)
+    if (file.size > 10485760) {
+      toast({
+        title: "Error",
+        description: "File size must be less than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingFile(true);
+
+    try {
+      // Upload to storage
+      const fileName = `${taskId}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("task-attachments")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("task-attachments")
+        .getPublicUrl(fileName);
+
+      // Save to database
+      const { error: dbError } = await supabase
+        .from("task_attachments")
+        .insert({
+          task_id: taskId,
+          uploaded_by: currentUser.id,
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          file_url: publicUrl,
+        });
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Success",
+        description: "File uploaded successfully",
+      });
+
+      loadAttachments();
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload file",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingFile(false);
+      e.target.value = "";
+    }
+  }
+
+  async function handleDeleteAttachment(attachmentId: string, fileUrl: string) {
+    try {
+      // Extract file path from URL
+      const urlParts = fileUrl.split("/task-attachments/");
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1];
+        
+        // Delete from storage
+        await supabase.storage
+          .from("task-attachments")
+          .remove([filePath]);
+      }
+
+      // Delete from database
+      const { error } = await supabase
+        .from("task_attachments")
+        .delete()
+        .eq("id", attachmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Attachment deleted",
+      });
+
+      loadAttachments();
+    } catch (error: any) {
+      console.error("Error deleting attachment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete attachment",
+        variant: "destructive",
       });
     }
   }
@@ -719,16 +877,33 @@ const TaskDetails = () => {
               <CardTitle>Comments ({comments.length})</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Textarea
-                  placeholder="Add a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[80px]"
-                />
-                <Button onClick={handleAddComment} size="icon">
-                  <Send className="h-4 w-4" />
-                </Button>
+              <div className="relative">
+                <div className="flex gap-2">
+                  <Textarea
+                    placeholder="Add a comment... Use @ to mention"
+                    value={newComment}
+                    onChange={handleCommentChange}
+                    className="min-h-[80px]"
+                  />
+                  <Button onClick={handleAddComment} size="icon">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                {showMentions && filteredMembers.length > 0 && (
+                  <Card className="absolute z-10 mt-1 w-64 max-h-48 overflow-auto">
+                    <CardContent className="p-2">
+                      {filteredMembers.map(member => (
+                        <div
+                          key={member.id}
+                          className="px-3 py-2 hover:bg-muted cursor-pointer rounded"
+                          onClick={() => insertMention(member)}
+                        >
+                          {member.email}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -793,10 +968,24 @@ const TaskDetails = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Attachments ({attachments.length})</CardTitle>
-                <Button size="sm" variant="outline">
-                  <Paperclip className="w-4 h-4 mr-2" />
-                  Upload
-                </Button>
+                <div>
+                  <input
+                    type="file"
+                    id="file-upload"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".jpg,.jpeg,.png,.pdf,.txt,.md,.doc,.docx,.xls,.xlsx"
+                  />
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => document.getElementById("file-upload")?.click()}
+                    disabled={uploadingFile}
+                  >
+                    <Paperclip className="w-4 h-4 mr-2" />
+                    {uploadingFile ? "Uploading..." : "Upload"}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -806,11 +995,31 @@ const TaskDetails = () => {
                 <div className="space-y-2">
                   {attachments.map(attachment => (
                     <div key={attachment.id} className="flex items-center justify-between p-2 rounded hover:bg-muted">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{attachment.file_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{attachment.file_name}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{(attachment.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                          <span>•</span>
+                          <span>{attachment.uploader_name}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => window.open(attachment.file_url, '_blank')}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        {attachment.uploaded_by === currentUser?.id && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleDeleteAttachment(attachment.id, attachment.file_url)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
