@@ -12,24 +12,74 @@ import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, getUserOrganizations } from '@/lib/auth';
 import { Building2, Users } from 'lucide-react';
 
-const timezones = [
-  'UTC',
-  'America/New_York',
-  'America/Chicago',
-  'America/Denver',
-  'America/Los_Angeles',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Asia/Tokyo',
-  'Asia/Shanghai',
-  'Australia/Sydney'
-];
+const timezoneGroups = {
+  'UTC': ['UTC'],
+  'Americas (Brazil)': [
+    'America/Sao_Paulo',
+    'America/Manaus',
+    'America/Fortaleza',
+    'America/Recife',
+    'America/Belem',
+    'America/Cuiaba',
+    'America/Porto_Velho',
+    'America/Boa_Vista',
+    'America/Rio_Branco',
+    'America/Noronha'
+  ],
+  'Americas (Other)': [
+    'America/New_York',
+    'America/Chicago',
+    'America/Los_Angeles'
+  ],
+  'Europe': [
+    'Europe/London',
+    'Europe/Paris'
+  ],
+  'Asia': [
+    'Asia/Tokyo'
+  ],
+  'Pacific': [
+    'Australia/Sydney'
+  ]
+};
+
+const timezoneLabels: Record<string, string> = {
+  'UTC': 'UTC - Coordinated Universal Time',
+  'America/Sao_Paulo': 'São Paulo, Rio de Janeiro, Brasília (UTC-3)',
+  'America/Manaus': 'Amazonas (UTC-4)',
+  'America/Fortaleza': 'Ceará, Maranhão (UTC-3)',
+  'America/Recife': 'Pernambuco (UTC-3)',
+  'America/Belem': 'Pará (UTC-3)',
+  'America/Cuiaba': 'Mato Grosso (UTC-4)',
+  'America/Porto_Velho': 'Rondônia (UTC-4)',
+  'America/Boa_Vista': 'Roraima (UTC-4)',
+  'America/Rio_Branco': 'Acre (UTC-5)',
+  'America/Noronha': 'Fernando de Noronha (UTC-2)',
+  'America/New_York': 'Eastern Time (UTC-5/UTC-4)',
+  'America/Chicago': 'Central Time (UTC-6/UTC-5)',
+  'America/Los_Angeles': 'Pacific Time (UTC-8/UTC-7)',
+  'Europe/London': 'London (UTC+0/UTC+1)',
+  'Europe/Paris': 'Paris (UTC+1/UTC+2)',
+  'Asia/Tokyo': 'Tokyo (UTC+9)',
+  'Australia/Sydney': 'Sydney (UTC+11/UTC+10)'
+};
+
+// Detect browser timezone
+const detectBrowserTimezone = (): string => {
+  try {
+    const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    // Check if detected timezone is in our list
+    const allTimezones = Object.values(timezoneGroups).flat();
+    return allTimezones.includes(detected) ? detected : 'UTC';
+  } catch {
+    return 'UTC';
+  }
+};
 
 const Onboarding = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [orgName, setOrgName] = useState('');
-  const [timezone, setTimezone] = useState('UTC');
+  const [timezone, setTimezone] = useState(detectBrowserTimezone());
   const [inviteCode, setInviteCode] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -240,18 +290,28 @@ const Onboarding = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="timezone">Timezone</Label>
-                    <Select value={timezone} onValueChange={setTimezone} disabled={isLoading}>
+                    <Select value={timezone} onValueChange={setTimezone} disabled={isLoading} required>
                       <SelectTrigger id="timezone">
-                        <SelectValue />
+                        <SelectValue placeholder="Select timezone" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {timezones.map((tz) => (
-                          <SelectItem key={tz} value={tz}>
-                            {tz}
-                          </SelectItem>
+                      <SelectContent className="max-h-[300px]">
+                        {Object.entries(timezoneGroups).map(([group, zones]) => (
+                          <div key={group}>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                              {group}
+                            </div>
+                            {zones.map((tz) => (
+                              <SelectItem key={tz} value={tz}>
+                                {timezoneLabels[tz] || tz}
+                              </SelectItem>
+                            ))}
+                          </div>
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Auto-detected: {detectBrowserTimezone()}
+                    </p>
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Creating...' : 'Create Organization'}
