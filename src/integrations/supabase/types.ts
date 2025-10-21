@@ -97,6 +97,44 @@ export type Database = {
         }
         Relationships: []
       }
+      pomodoro_sessions: {
+        Row: {
+          break_count: number | null
+          completed_at: string | null
+          created_at: string | null
+          focus_count: number | null
+          id: string
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          break_count?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          focus_count?: number | null
+          id?: string
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          break_count?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          focus_count?: number | null
+          id?: string
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pomodoro_sessions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_teams: {
         Row: {
           assigned_at: string
@@ -508,6 +546,88 @@ export type Database = {
           },
         ]
       }
+      time_entries: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          duration_seconds: number | null
+          end_time: string | null
+          id: string
+          is_approved: boolean | null
+          is_billable: boolean | null
+          organization_id: string
+          project_id: string | null
+          start_time: string
+          task_id: string | null
+          timer_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_billable?: boolean | null
+          organization_id: string
+          project_id?: string | null
+          start_time: string
+          task_id?: string | null
+          timer_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_billable?: boolean | null
+          organization_id?: string
+          project_id?: string | null
+          start_time?: string
+          task_id?: string | null
+          timer_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_organizations: {
         Row: {
           id: string
@@ -552,6 +672,10 @@ export type Database = {
         Args: { p_task_id: string; p_user_ids: string[] }
         Returns: undefined
       }
+      calculate_duration_seconds: {
+        Args: { p_end_time: string; p_start_time: string }
+        Returns: number
+      }
       check_project_limit: {
         Args: { p_org_id: string }
         Returns: boolean
@@ -568,6 +692,19 @@ export type Database = {
         Args: { p_org_id: string }
         Returns: boolean
       }
+      check_time_entry_limit: {
+        Args: { p_org_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      check_time_entry_overlap: {
+        Args: {
+          p_end_time: string
+          p_entry_id?: string
+          p_start_time: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       create_organization_atomic: {
         Args: { p_org_name: string; p_timezone: string; p_user_id: string }
         Returns: Json
@@ -579,6 +716,10 @@ export type Database = {
       extract_mentions: {
         Args: { p_content: string }
         Returns: string[]
+      }
+      format_duration: {
+        Args: { p_seconds: number }
+        Returns: string
       }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
@@ -670,6 +811,10 @@ export type Database = {
       join_organization_via_invite: {
         Args: { p_invite_code: string; p_user_id: string }
         Returns: string
+      }
+      update_task_actual_hours: {
+        Args: { p_task_id: string }
+        Returns: undefined
       }
     }
     Enums: {
