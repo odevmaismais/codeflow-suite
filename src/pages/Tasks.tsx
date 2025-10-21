@@ -96,20 +96,7 @@ const Tasks = () => {
 
   async function loadTasks(orgId: string) {
     const { data, error } = await supabase
-      .from("tasks")
-      .select(`
-        *,
-        assignee:assigned_to (email, raw_user_meta_data),
-        creator:created_by (email, raw_user_meta_data),
-        project:projects (name),
-        subtasks:tasks!parent_task_id (id, status),
-        comments:task_comments (id),
-        attachments:task_attachments (id)
-      `)
-      .eq("organization_id", orgId)
-      .is("deleted_at", null)
-      .is("parent_task_id", null)
-      .order("created_at", { ascending: false });
+      .rpc("get_tasks_with_details", { p_org_id: orgId });
 
     if (error) {
       console.error("Error loading tasks:", error);
@@ -129,21 +116,21 @@ const Tasks = () => {
       priority: task.priority,
       task_type: task.task_type,
       assigned_to: task.assigned_to,
-      assignee_email: task.assignee?.email || null,
-      assignee_name: task.assignee?.raw_user_meta_data?.full_name || null,
+      assignee_email: task.assignee_email,
+      assignee_name: task.assignee_name,
       created_by: task.created_by,
-      creator_email: task.creator?.email || "",
-      creator_name: task.creator?.raw_user_meta_data?.full_name || null,
+      creator_email: task.creator_email,
+      creator_name: task.creator_name,
       estimated_hours: task.estimated_hours,
       actual_hours: task.actual_hours || 0,
       due_date: task.due_date,
       project_id: task.project_id,
-      project_name: task.project?.name || null,
+      project_name: task.project_name,
       parent_task_id: task.parent_task_id,
-      subtask_count: task.subtasks?.length || 0,
-      completed_subtask_count: task.subtasks?.filter((s: any) => s.status === 'done').length || 0,
-      comment_count: task.comments?.length || 0,
-      attachment_count: task.attachments?.length || 0,
+      subtask_count: task.subtask_count || 0,
+      completed_subtask_count: task.completed_subtask_count || 0,
+      comment_count: task.comment_count || 0,
+      attachment_count: task.attachment_count || 0,
     }));
 
     setTasks(formattedTasks);

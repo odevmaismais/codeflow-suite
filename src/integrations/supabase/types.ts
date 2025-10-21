@@ -609,6 +609,39 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_tasks_with_details: {
+        Args: { p_org_id: string }
+        Returns: {
+          actual_hours: number
+          assigned_to: string
+          assignee_email: string
+          assignee_name: string
+          attachment_count: number
+          code: string
+          comment_count: number
+          completed_at: string
+          completed_subtask_count: number
+          created_at: string
+          created_by: string
+          creator_email: string
+          creator_name: string
+          deleted_at: string
+          description: string
+          due_date: string
+          estimated_hours: number
+          id: string
+          organization_id: string
+          parent_task_id: string
+          priority: string
+          project_id: string
+          project_name: string
+          status: string
+          subtask_count: number
+          task_type: string
+          title: string
+          updated_at: string
+        }[]
+      }
       get_team_members_with_emails: {
         Args: { p_team_id: string }
         Returns: {
