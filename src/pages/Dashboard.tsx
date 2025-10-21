@@ -198,9 +198,9 @@ const Dashboard = () => {
               <Button 
                 className="w-full" 
                 variant="outline"
-                onClick={navigateToSettings}
+                onClick={() => navigate('/teams')}
               >
-                Manage Team
+                Manage Teams
               </Button>
             </CardContent>
           </Card>

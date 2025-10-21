@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Plus } from "lucide-react";
+import { Users, Plus, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 const teamSchema = z.object({
@@ -191,6 +191,11 @@ export default function Teams() {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Dashboard
+      </Button>
+      
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Teams</h1>

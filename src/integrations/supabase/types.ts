@@ -374,6 +374,29 @@ export type Database = {
         Args: { org_name: string }
         Returns: string
       }
+      get_org_members_with_emails: {
+        Args: { p_org_id: string }
+        Returns: {
+          email: string
+          joined_at: string
+          role: string
+          user_id: string
+        }[]
+      }
+      get_team_members_with_emails: {
+        Args: { p_team_id: string }
+        Returns: {
+          email: string
+          id: string
+          joined_at: string
+          team_role: string
+          user_id: string
+        }[]
+      }
+      get_user_email: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_user_organizations: {
         Args: { p_user_id: string }
         Returns: {

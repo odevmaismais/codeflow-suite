@@ -29,7 +29,14 @@ interface TeamMember {
   user_id: string;
   team_role: string;
   joined_at: string;
-  email?: string;
+  email: string;
+}
+
+interface OrgMember {
+  user_id: string;
+  email: string;
+  role: string;
+  joined_at: string;
 }
 
 export default function TeamDetails() {
@@ -39,7 +46,7 @@ export default function TeamDetails() {
   const [loading, setLoading] = useState(true);
   const [team, setTeam] = useState<any>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
-  const [orgMembers, setOrgMembers] = useState<any[]>([]);
+  const [orgMembers, setOrgMembers] = useState<OrgMember[]>([]);
   const [activeOrg, setActiveOrg] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   
@@ -116,10 +123,9 @@ export default function TeamDetails() {
   }
 
   async function loadMembers() {
-    const { data, error } = await supabase
-      .from("team_members")
-      .select("*")
-      .eq("team_id", teamId);
+    const { data, error } = await supabase.rpc("get_team_members_with_emails", {
+      p_team_id: teamId
+    });
 
     if (error) {
       console.error("Error loading members:", error);
@@ -130,10 +136,9 @@ export default function TeamDetails() {
   }
 
   async function loadOrgMembers(orgId: string) {
-    const { data, error } = await supabase
-      .from("user_organizations")
-      .select("user_id")
-      .eq("organization_id", orgId);
+    const { data, error } = await supabase.rpc("get_org_members_with_emails", {
+      p_org_id: orgId
+    });
 
     if (error) {
       console.error("Error loading org members:", error);
@@ -367,7 +372,7 @@ export default function TeamDetails() {
                         <SelectContent>
                           {availableMembers.map((member) => (
                             <SelectItem key={member.user_id} value={member.user_id}>
-                              {member.user_id}
+                              {member.email}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -414,7 +419,7 @@ export default function TeamDetails() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User ID</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Team Role</TableHead>
                   <TableHead>Joined Date</TableHead>
                   {canManageTeam && <TableHead className="text-right">Actions</TableHead>}
@@ -423,7 +428,7 @@ export default function TeamDetails() {
               <TableBody>
                 {members.map((member) => (
                   <TableRow key={member.id}>
-                    <TableCell className="font-mono text-sm">{member.user_id}</TableCell>
+                    <TableCell>{member.email}</TableCell>
                     <TableCell>
                       {TEAM_ROLES.find(r => r.value === member.team_role)?.label || member.team_role}
                     </TableCell>
