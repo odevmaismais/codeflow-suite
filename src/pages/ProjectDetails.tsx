@@ -41,6 +41,7 @@ export default function ProjectDetails() {
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
   const [teamToRemove, setTeamToRemove] = useState<string | null>(null);
+  const [isTechLead, setIsTechLead] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -67,10 +68,36 @@ export default function ProjectDetails() {
     await Promise.all([
       loadProject(),
       loadAssignedTeams(),
-      loadAvailableTeams(currentOrg.id)
+      loadAvailableTeams(currentOrg.id),
+      checkIfTechLead(user.id)
     ]);
 
     setLoading(false);
+  }
+
+  async function checkIfTechLead(userId: string) {
+    // First get all teams assigned to this project
+    const { data: projectTeams } = await supabase
+      .from("project_teams")
+      .select("team_id")
+      .eq("project_id", projectId);
+
+    if (!projectTeams || projectTeams.length === 0) {
+      setIsTechLead(false);
+      return;
+    }
+
+    // Check if user is tech lead in any of those teams
+    const teamIds = projectTeams.map(pt => pt.team_id);
+    const { data: techLeadCheck } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("user_id", userId)
+      .in("team_id", teamIds)
+      .eq("team_role", "tech_lead")
+      .limit(1);
+
+    setIsTechLead(!!techLeadCheck && techLeadCheck.length > 0);
   }
 
   async function loadProject() {
@@ -217,7 +244,7 @@ export default function ProjectDetails() {
     );
   }
 
-  const canManageProject = activeOrg?.role === "admin" || activeOrg?.role === "manager";
+  const canManageProject = activeOrg?.role === "admin" || activeOrg?.role === "manager" || isTechLead;
   const unassignedTeams = availableTeams.filter(t => !assignedTeams.some(at => at.team_id === t.id));
 
   return (

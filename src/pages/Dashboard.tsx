@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { signOut, getCurrentUser, getUserOrganizations, Organization } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, ChevronDown, Clock, LogOut, Settings, Users } from 'lucide-react';
+import { Building2, ChevronDown, Clock, LogOut, Settings, Users, FolderOpen } from 'lucide-react';
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -201,6 +201,27 @@ const Dashboard = () => {
                 onClick={() => navigate('/teams')}
               >
                 Manage Teams
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FolderOpen className="h-5 w-5 text-primary" />
+                Projects
+              </CardTitle>
+              <CardDescription>
+                Manage projects and track progress
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => navigate('/projects')}
+              >
+                View Projects
               </Button>
             </CardContent>
           </Card>

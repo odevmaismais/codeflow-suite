@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { FolderOpen, Plus, DollarSign } from "lucide-react";
+import { FolderOpen, Plus, DollarSign, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { z } from "zod";
 
@@ -314,6 +314,11 @@ export default function Projects() {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Dashboard
+      </Button>
+      
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Projects</h1>
