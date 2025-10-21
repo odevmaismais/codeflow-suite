@@ -617,14 +617,13 @@ const TaskDetails = () => {
                   <label className="text-sm font-medium">Assignee</label>
                   {canEdit && task.project_id ? (
                     <Select
-                      value={task.assigned_to || ""}
-                      onValueChange={(value) => updateTaskField("assigned_to", value || null)}
+                      value={task.assigned_to || undefined}
+                      onValueChange={(value) => updateTaskField("assigned_to", value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Unassigned" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
                         {teamMembers.map(member => (
                           <SelectItem key={member.id} value={member.id}>
                             {member.name}
