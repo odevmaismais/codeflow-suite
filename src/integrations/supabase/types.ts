@@ -188,13 +188,8 @@ export type Database = {
     }
     Functions: {
       create_organization_with_admin: {
-        Args: { p_name: string; p_timezone: string }
-        Returns: {
-          id: string
-          name: string
-          slug: string
-          timezone: string
-        }[]
+        Args: { p_org_name: string; p_timezone: string; p_user_id: string }
+        Returns: string
       }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
@@ -204,8 +199,15 @@ export type Database = {
         Args: { org_name: string }
         Returns: string
       }
-      join_organization_with_code: {
-        Args: { p_code: string }
+      get_user_organizations: {
+        Args: { p_user_id: string }
+        Returns: {
+          organization_id: string
+          role: string
+        }[]
+      }
+      join_organization_via_invite: {
+        Args: { p_invite_code: string; p_user_id: string }
         Returns: string
       }
     }

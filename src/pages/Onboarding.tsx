@@ -117,19 +117,20 @@ const Onboarding = () => {
       const user = await getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase.rpc('create_organization_with_admin' as any, {
-        p_name: orgName,
+const { data, error } = await supabase.rpc('create_organization_with_admin' as any, {
+        p_org_name: orgName,
         p_timezone: timezone,
+        p_user_id: user.id,
       });
 
       if (error) throw error;
 
-      const org = Array.isArray(data) ? data?.[0] : data;
-      if (!org?.id) throw new Error('Failed to create organization');
+const orgId = (data as string) || '';
+      if (!orgId) throw new Error('Failed to create organization');
 
-      try { localStorage.setItem('activeOrgId', org.id); } catch {}
+      try { localStorage.setItem('activeOrgId', orgId); } catch {}
 
-      toast({ title: 'Organization created!', description: `Welcome to ${org.name}` });
+      toast({ title: 'Organization created!', description: `Welcome to ${orgName}` });
       navigate('/dashboard');
     } catch (error: any) {
       const msg = error?.message || 'Something went wrong. Please try again.';
@@ -162,8 +163,9 @@ const Onboarding = () => {
       const user = await getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase.rpc('join_organization_with_code' as any, {
-        p_code: parsed.data.code,
+const { data, error } = await supabase.rpc('join_organization_via_invite' as any, {
+        p_invite_code: parsed.data.code,
+        p_user_id: user.id,
       });
       if (error) throw error;
 
