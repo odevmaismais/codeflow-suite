@@ -117,16 +117,30 @@ const Onboarding = () => {
       const user = await getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
-const { data, error } = await supabase.rpc('create_organization_with_admin' as any, {
+const { data, error } = await supabase.rpc('create_organization_atomic' as any, {
+        p_user_id: user.id,
         p_org_name: orgName,
         p_timezone: timezone,
-        p_user_id: user.id,
       });
 
       if (error) throw error;
 
-      const orgId = (data as string) || '';
-      if (!orgId) throw new Error('Failed to create organization');
+      const res = data as any;
+      if (!res?.success || !res?.organization_id) {
+        throw new Error(res?.error || 'Failed to create organization');
+      }
+
+      const orgId = res.organization_id as string;
+
+      // Verify membership persisted
+      const { data: membership, error: memErr } = await supabase
+        .from('user_organizations' as any)
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('organization_id', orgId)
+        .maybeSingle();
+      if (memErr) console.error('Membership verification error:', memErr);
+      if (!membership) throw new Error('Failed to link user to organization');
 
       // Store in localStorage immediately
       try {
@@ -198,7 +212,7 @@ const { data, error } = await supabase.rpc('join_organization_via_invite' as any
           .from('organizations' as any)
           .select('name')
           .eq('id', orgId)
-          .single();
+          .maybeSingle();
         if (orgData?.name) {
           localStorage.setItem('activeOrgName', orgData.name);
         }

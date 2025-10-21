@@ -187,6 +187,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_organization_atomic: {
+        Args: { p_org_name: string; p_timezone: string; p_user_id: string }
+        Returns: Json
+      }
       create_organization_with_admin: {
         Args: { p_org_name: string; p_timezone: string; p_user_id: string }
         Returns: string
