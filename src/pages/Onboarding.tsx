@@ -125,13 +125,25 @@ const { data, error } = await supabase.rpc('create_organization_with_admin' as a
 
       if (error) throw error;
 
-const orgId = (data as string) || '';
+      const orgId = (data as string) || '';
       if (!orgId) throw new Error('Failed to create organization');
 
-      try { localStorage.setItem('activeOrgId', orgId); } catch {}
+      // Store in localStorage immediately
+      try {
+        localStorage.setItem('activeOrgId', orgId);
+        localStorage.setItem('activeOrgName', orgName.trim());
+      } catch (e) {
+        console.error('Failed to store org in localStorage:', e);
+      }
 
-      toast({ title: 'Organization created!', description: `Welcome to ${orgName}` });
-      navigate('/dashboard');
+      // Show success toast
+      toast({
+        title: 'Organization created successfully',
+        description: `Welcome to ${orgName.trim()}`
+      });
+
+      // Redirect immediately to dashboard
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       const msg = error?.message || 'Something went wrong. Please try again.';
       toast({ title: 'Failed to create organization', description: msg, variant: 'destructive' });
@@ -172,10 +184,21 @@ const { data, error } = await supabase.rpc('join_organization_via_invite' as any
       const orgId = (data as string) || '';
       if (!orgId) throw new Error('Failed to join organization');
 
-      try { localStorage.setItem('activeOrgId', orgId); } catch {}
+      // Store in localStorage immediately
+      try {
+        localStorage.setItem('activeOrgId', orgId);
+      } catch (e) {
+        console.error('Failed to store org in localStorage:', e);
+      }
 
-      toast({ title: 'Joined organization!', description: 'Redirecting to dashboard...' });
-      navigate('/dashboard');
+      // Show success toast
+      toast({
+        title: 'Joined organization successfully',
+        description: 'Redirecting to dashboard...'
+      });
+
+      // Redirect immediately to dashboard
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       const raw = (error?.message || '').toLowerCase();
       let msg = 'Something went wrong. Please try again.';
