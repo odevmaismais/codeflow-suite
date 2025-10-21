@@ -187,12 +187,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_organization_with_admin: {
+        Args: { p_name: string; p_timezone: string }
+        Returns: {
+          id: string
+          name: string
+          slug: string
+          timezone: string
+        }[]
+      }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
       generate_unique_slug: {
         Args: { org_name: string }
+        Returns: string
+      }
+      join_organization_with_code: {
+        Args: { p_code: string }
         Returns: string
       }
     }

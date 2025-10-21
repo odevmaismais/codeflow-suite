@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, getUserOrganizations } from '@/lib/auth';
 import { Building2, Users } from 'lucide-react';
+import { z } from 'zod';
 
 const timezoneGroups = {
   'UTC': ['UTC'],
@@ -97,13 +98,16 @@ const Onboarding = () => {
 
   const handleCreateOrg = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!orgName.trim()) {
-      toast({
-        title: 'Organization name required',
-        description: 'Please enter a name for your organization',
-        variant: 'destructive'
-      });
+
+    const allTimezones = Object.values(timezoneGroups).flat();
+    const OrgSchema = z.object({
+      name: z.string().trim().min(3, { message: 'Organization name must be at least 3 characters' }).max(50, { message: 'Organization name must be at most 50 characters' }),
+      timezone: z.string().refine((val) => allTimezones.includes(val), { message: 'Invalid timezone selected' }),
+    });
+
+    const parsed = OrgSchema.safeParse({ name: orgName, timezone });
+    if (!parsed.success) {
+      toast({ title: 'Validation error', description: parsed.error.errors[0].message, variant: 'destructive' });
       return;
     }
 
@@ -111,52 +115,25 @@ const Onboarding = () => {
 
     try {
       const user = await getCurrentUser();
-      if (!user) {
-        throw new Error('Not authenticated');
-      }
+      if (!user) throw new Error('Not authenticated');
 
-      // Generate slug
-      const { data: slugData, error: slugError } = await supabase
-        .rpc('generate_unique_slug' as any, { org_name: orgName });
-
-      if (slugError) throw slugError;
-
-      // Create organization
-      const { data: org, error: orgError } = await supabase
-        .from('organizations' as any)
-        .insert({
-          name: orgName.trim(),
-          slug: slugData,
-          timezone
-        })
-        .select()
-        .single();
-
-      if (orgError) throw orgError;
-
-      // Add user as admin
-      const { error: memberError } = await supabase
-        .from('user_organizations' as any)
-        .insert({
-          user_id: user.id,
-          organization_id: org.id,
-          role: 'admin'
-        });
-
-      if (memberError) throw memberError;
-
-      toast({
-        title: 'Organization created!',
-        description: `Welcome to ${orgName}`
+      const { data, error } = await supabase.rpc('create_organization_with_admin' as any, {
+        p_name: orgName,
+        p_timezone: timezone,
       });
 
+      if (error) throw error;
+
+      const org = Array.isArray(data) ? data?.[0] : data;
+      if (!org?.id) throw new Error('Failed to create organization');
+
+      try { localStorage.setItem('activeOrgId', org.id); } catch {}
+
+      toast({ title: 'Organization created!', description: `Welcome to ${org.name}` });
       navigate('/dashboard');
     } catch (error: any) {
-      toast({
-        title: 'Failed to create organization',
-        description: error.message,
-        variant: 'destructive'
-      });
+      const msg = error?.message || 'Something went wrong. Please try again.';
+      toast({ title: 'Failed to create organization', description: msg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -164,13 +141,18 @@ const Onboarding = () => {
 
   const handleJoinOrg = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!inviteCode.trim()) {
-      toast({
-        title: 'Invite code required',
-        description: 'Please enter an invite code',
-        variant: 'destructive'
-      });
+
+    const InviteSchema = z.object({
+      code: z
+        .string()
+        .trim()
+        .transform((v) => v.toUpperCase())
+        .regex(/^[A-Z]{3}-[A-Z0-9]{6}$/i, { message: 'Invite code format must be XXX-XXXXXX' }),
+    });
+
+    const parsed = InviteSchema.safeParse({ code: inviteCode });
+    if (!parsed.success) {
+      toast({ title: 'Invalid invite code', description: parsed.error.errors[0].message, variant: 'destructive' });
       return;
     }
 
@@ -178,68 +160,26 @@ const Onboarding = () => {
 
     try {
       const user = await getCurrentUser();
-      if (!user) {
-        throw new Error('Not authenticated');
-      }
+      if (!user) throw new Error('Not authenticated');
 
-      // Validate invite code
-      const { data: invite, error: inviteError } = await supabase
-        .from('invite_codes' as any)
-        .select('*')
-        .eq('code', inviteCode.toUpperCase())
-        .single();
-
-      if (inviteError || !invite) {
-        throw new Error('Invalid or expired invite code');
-      }
-
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('user_organizations' as any)
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('organization_id', invite.organization_id)
-        .single();
-
-      if (existing) {
-        toast({
-          title: 'Already a member',
-          description: 'You are already part of this organization',
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Add user as member
-      const { error: memberError } = await supabase
-        .from('user_organizations' as any)
-        .insert({
-          user_id: user.id,
-          organization_id: invite.organization_id,
-          role: 'member'
-        });
-
-      if (memberError) throw memberError;
-
-      // Update invite code usage
-      await supabase
-        .from('invite_codes' as any)
-        .update({ current_uses: invite.current_uses + 1 })
-        .eq('id', invite.id);
-
-      toast({
-        title: 'Joined organization!',
-        description: 'Redirecting to dashboard...'
+      const { data, error } = await supabase.rpc('join_organization_with_code' as any, {
+        p_code: parsed.data.code,
       });
+      if (error) throw error;
 
+      const orgId = (data as string) || '';
+      if (!orgId) throw new Error('Failed to join organization');
+
+      try { localStorage.setItem('activeOrgId', orgId); } catch {}
+
+      toast({ title: 'Joined organization!', description: 'Redirecting to dashboard...' });
       navigate('/dashboard');
     } catch (error: any) {
-      toast({
-        title: 'Failed to join organization',
-        description: error.message,
-        variant: 'destructive'
-      });
+      const raw = (error?.message || '').toLowerCase();
+      let msg = 'Something went wrong. Please try again.';
+      if (raw.includes('invalid') || raw.includes('expired')) msg = 'Invalid or expired invite code';
+      if (raw.includes('already a member')) msg = 'You are already a member of this organization';
+      toast({ title: 'Failed to join organization', description: msg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
