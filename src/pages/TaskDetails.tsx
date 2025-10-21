@@ -614,6 +614,41 @@ const TaskDetails = () => {
     }
   }
 
+  async function handleDownloadAttachment(attachment: Attachment) {
+    try {
+      // Extract the file path from the full URL
+      const urlParts = attachment.file_url.split('/task-attachments/');
+      if (urlParts.length < 2) {
+        throw new Error('Invalid file URL');
+      }
+      const filePath = urlParts[1];
+
+      // Download the file with authentication
+      const { data, error } = await supabase.storage
+        .from("task-attachments")
+        .download(filePath);
+
+      if (error) throw error;
+
+      // Create a blob URL and trigger download
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error("Error downloading attachment:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to download attachment",
+        variant: "destructive",
+      });
+    }
+  }
+
   async function toggleWatch() {
     if (isWatching) {
       const { error } = await supabase
@@ -1007,7 +1042,7 @@ const TaskDetails = () => {
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => window.open(attachment.file_url, '_blank')}
+                          onClick={() => handleDownloadAttachment(attachment)}
                         >
                           <Download className="h-4 w-4" />
                         </Button>
