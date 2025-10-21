@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, DollarSign } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, DollarSign, Edit2 } from "lucide-react";
 import { format } from "date-fns";
+import { EditProjectDialog } from "@/components/EditProjectDialog";
 
 const STATUS_COLORS: Record<string, string> = {
   planning: "bg-gray-500",
@@ -42,6 +43,7 @@ export default function ProjectDetails() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [teamToRemove, setTeamToRemove] = useState<string | null>(null);
   const [isTechLead, setIsTechLead] = useState(false);
+  const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -269,10 +271,20 @@ export default function ProjectDetails() {
             </Badge>
           )}
         </div>
-        <h1 className="text-3xl font-bold">{project?.name}</h1>
-        {project?.description && (
-          <p className="text-muted-foreground mt-2">{project.description}</p>
-        )}
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold">{project?.name}</h1>
+            {project?.description && (
+              <p className="text-muted-foreground mt-2">{project.description}</p>
+            )}
+          </div>
+          {canManageProject && (
+            <Button variant="outline" onClick={() => setIsEditProjectOpen(true)}>
+              <Edit2 className="w-4 h-4 mr-2" />
+              Edit Project
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -391,12 +403,19 @@ export default function ProjectDetails() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tasks</CardTitle>
-          <CardDescription>Project tasks and deliverables</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Tasks</CardTitle>
+              <CardDescription>Project tasks and deliverables</CardDescription>
+            </div>
+            <Button onClick={() => navigate(`/tasks?project=${projectId}`)}>
+              View All Tasks
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-8">
-            No tasks yet. Tasks will be available in Phase 3.
+          <p className="text-muted-foreground">
+            View and manage all tasks for this project in the Tasks page.
           </p>
         </CardContent>
       </Card>
@@ -417,6 +436,18 @@ export default function ProjectDetails() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {project && (
+        <EditProjectDialog
+          open={isEditProjectOpen}
+          onOpenChange={setIsEditProjectOpen}
+          onSuccess={() => {
+            loadProject();
+            setIsEditProjectOpen(false);
+          }}
+          project={project}
+        />
+      )}
     </div>
   );
 }

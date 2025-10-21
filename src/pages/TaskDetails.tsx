@@ -256,34 +256,37 @@ const TaskDetails = () => {
       .select("team_id")
       .eq("project_id", projectId);
 
-    if (!projectTeams || projectTeams.length === 0) return;
+    if (!projectTeams || projectTeams.length === 0) {
+      setTeamMembers([]);
+      return;
+    }
 
     const teamIds = projectTeams.map(pt => pt.team_id);
     
-    const { data: members } = await supabase
-      .from("team_members")
-      .select(`
-        user_id,
-        users:user_id (
-          email,
-          raw_user_meta_data
-        )
-      `)
-      .in("team_id", teamIds);
+    // Use RPC function to get team members with emails
+    const membersData = await Promise.all(
+      teamIds.map(teamId => 
+        supabase.rpc("get_team_members_with_emails", { p_team_id: teamId })
+      )
+    );
 
-    if (members) {
+    const allMembers = membersData.flatMap(result => result.data || []);
+    
+    if (allMembers.length > 0) {
       const uniqueMembers = Array.from(
         new Map(
-          members.map((m: any) => [
+          allMembers.map((m: any) => [
             m.user_id,
             {
               id: m.user_id,
-              name: m.users?.raw_user_meta_data?.full_name || m.users?.email || "Unknown",
+              name: m.email || "Unknown",
             }
           ])
         ).values()
       );
       setTeamMembers(uniqueMembers);
+    } else {
+      setTeamMembers([]);
     }
   }
 
@@ -537,12 +540,6 @@ const TaskDetails = () => {
           </Badge>
           <h1 className="text-2xl font-bold">{task.title}</h1>
         </div>
-        {canEdit && (
-          <Button size="sm">
-            <Edit2 className="w-4 h-4 mr-2" />
-            Edit
-          </Button>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

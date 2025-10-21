@@ -132,10 +132,6 @@ export function CreateTaskDialog({ open, onOpenChange, onSuccess, projectId, par
   }
 
   async function loadTeamMembers(projectId: string) {
-    const { data } = await supabase.rpc("get_user_email", {
-      p_user_id: (await getCurrentUser())?.id
-    });
-
     // Get team members from project teams
     const { data: projectTeams } = await supabase
       .from("project_teams")
@@ -149,31 +145,31 @@ export function CreateTaskDialog({ open, onOpenChange, onSuccess, projectId, par
 
     const teamIds = projectTeams.map(pt => pt.team_id);
     
-    const { data: members } = await supabase
-      .from("team_members")
-      .select(`
-        user_id,
-        users:user_id (
-          email,
-          raw_user_meta_data
-        )
-      `)
-      .in("team_id", teamIds);
+    // Use RPC function to get team members with emails
+    const membersData = await Promise.all(
+      teamIds.map(teamId => 
+        supabase.rpc("get_team_members_with_emails", { p_team_id: teamId })
+      )
+    );
 
-    if (members) {
+    const allMembers = membersData.flatMap(result => result.data || []);
+    
+    if (allMembers.length > 0) {
       const uniqueMembers = Array.from(
         new Map(
-          members.map((m: any) => [
+          allMembers.map((m: any) => [
             m.user_id,
             {
               id: m.user_id,
-              name: m.users?.raw_user_meta_data?.full_name || m.users?.email || "Unknown",
-              email: m.users?.email || ""
+              name: m.email || "Unknown",
+              email: m.email || ""
             }
           ])
         ).values()
       );
       setTeamMembers(uniqueMembers);
+    } else {
+      setTeamMembers([]);
     }
   }
 
@@ -328,6 +324,7 @@ export function CreateTaskDialog({ open, onOpenChange, onSuccess, projectId, par
                         field.onChange(value);
                         setSelectedProjectId(value);
                       }}
+                      disabled={!!parentTaskId}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -347,7 +344,7 @@ export function CreateTaskDialog({ open, onOpenChange, onSuccess, projectId, par
                 )}
               />
 
-              {selectedProjectId && (
+              {selectedProjectId && !parentTaskId && (
                 <FormField
                   control={form.control}
                   name="parent_task_id"
