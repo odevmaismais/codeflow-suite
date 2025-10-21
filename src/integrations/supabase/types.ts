@@ -404,6 +404,10 @@ export type Database = {
           role: string
         }[]
       }
+      is_team_tech_lead: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: boolean
+      }
       join_organization_via_invite: {
         Args: { p_invite_code: string; p_user_id: string }
         Returns: string
