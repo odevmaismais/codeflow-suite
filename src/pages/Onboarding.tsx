@@ -139,11 +139,12 @@ const { data, error } = await supabase.rpc('create_organization_with_admin' as a
       // Show success toast
       toast({
         title: 'Organization created successfully',
-        description: `Welcome to ${orgName.trim()}`
+        description: `Welcome to ${orgName.trim()}`,
+        duration: 3000
       });
 
-      // Redirect immediately to dashboard
-      navigate('/dashboard', { replace: true });
+      // Redirect immediately to dashboard (hard redirect)
+      window.location.replace('/dashboard');
     } catch (error: any) {
       const msg = error?.message || 'Something went wrong. Please try again.';
       toast({ title: 'Failed to create organization', description: msg, variant: 'destructive' });
@@ -191,14 +192,29 @@ const { data, error } = await supabase.rpc('join_organization_via_invite' as any
         console.error('Failed to store org in localStorage:', e);
       }
 
+      // Fetch org name for display and persist
+      try {
+        const { data: orgData } = await supabase
+          .from('organizations' as any)
+          .select('name')
+          .eq('id', orgId)
+          .single();
+        if (orgData?.name) {
+          localStorage.setItem('activeOrgName', orgData.name);
+        }
+      } catch (e) {
+        // non-fatal, continue
+      }
+
       // Show success toast
       toast({
         title: 'Joined organization successfully',
-        description: 'Redirecting to dashboard...'
+        description: 'Redirecting to dashboard...',
+        duration: 3000
       });
 
-      // Redirect immediately to dashboard
-      navigate('/dashboard', { replace: true });
+      // Redirect immediately to dashboard (hard redirect)
+      window.location.replace('/dashboard');
     } catch (error: any) {
       const raw = (error?.message || '').toLowerCase();
       let msg = 'Something went wrong. Please try again.';
