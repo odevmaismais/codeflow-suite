@@ -280,7 +280,9 @@ export default function TeamDetails() {
   }
 
   const canManageTeam = activeOrg?.role === "admin" || activeOrg?.role === "manager" || members.some(m => m.user_id === currentUserId && m.team_role === "tech_lead");
-  const availableMembers = orgMembers.filter(om => !members.some(m => m.user_id === om.user_id));
+  
+  // Show all org members but mark already added ones as disabled
+  const isMemberInTeam = (userId: string) => members.some(m => m.user_id === userId);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -370,9 +372,13 @@ export default function TeamDetails() {
                           <SelectValue placeholder="Select a user" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableMembers.map((member) => (
-                            <SelectItem key={member.user_id} value={member.user_id}>
-                              {member.email}
+                          {orgMembers.map((member) => (
+                            <SelectItem 
+                              key={member.user_id} 
+                              value={member.user_id}
+                              disabled={isMemberInTeam(member.user_id)}
+                            >
+                              {member.email} {isMemberInTeam(member.user_id) && "(Already in team)"}
                             </SelectItem>
                           ))}
                         </SelectContent>
