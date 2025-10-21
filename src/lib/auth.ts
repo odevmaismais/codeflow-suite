@@ -64,7 +64,7 @@ export async function getUserOrganizations(): Promise<Organization[]> {
         timezone
       )
     `)
-    .order('created_at', { ascending: true });
+    .order('joined_at', { ascending: true });
 
   if (error) {
     console.error('Error fetching organizations:', error);
