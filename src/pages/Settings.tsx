@@ -264,14 +264,20 @@ const Settings = () => {
               <CardHeader>
                 <CardTitle>Quick Links</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   onClick={() => navigate('/settings/billing')}
-                  className="w-full sm:w-auto"
                 >
                   <CreditCard className="mr-2 h-4 w-4" />
                   Manage Billing & Subscription
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/settings/developer')}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Developer Settings
                 </Button>
               </CardContent>
             </Card>
