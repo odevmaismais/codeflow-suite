@@ -1,398 +1,96 @@
-// @ts-nocheck
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { signOut, getCurrentUser, getUserOrganizations, Organization } from '@/lib/auth';
-import { useToast } from '@/hooks/use-toast';
-import { Building2, ChevronDown, Clock, LogOut, Settings, Users, FolderOpen, CheckSquare, Timer, ListChecks, Calendar, BarChart3, FileText } from 'lucide-react';
+import { PageLayout } from "@/components/PageLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Play, Plus, Calendar } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const Dashboard = () => {
-  const [user, setUser] = useState<any>(null);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export default function Dashboard() {
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const authUser = await getCurrentUser();
-    if (!authUser) {
-      navigate('/auth');
-      return;
-    }
-
-    setUser(authUser);
-
-    const orgs = await getUserOrganizations();
-    if (orgs.length === 0) {
-      navigate('/onboarding');
-      return;
-    }
-
-    setOrganizations(orgs);
-    
-    // Check localStorage for active org, otherwise use first
-    const savedOrgId = localStorage.getItem('activeOrgId');
-    const activeOrg = savedOrgId 
-      ? orgs.find(o => o.id === savedOrgId) || orgs[0]
-      : orgs[0];
-    
-    setCurrentOrg(activeOrg);
-    localStorage.setItem('activeOrgId', activeOrg.id);
-    setIsLoading(false);
-  };
-
-  const switchOrganization = (org: Organization) => {
-    setCurrentOrg(org);
-    localStorage.setItem('activeOrgId', org.id);
-    toast({
-      title: 'Organization switched',
-      description: `Now viewing ${org.name}`
-    });
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    localStorage.removeItem('activeOrgId');
-    navigate('/auth');
-    toast({
-      title: 'Signed out',
-      description: 'Come back soon!'
-    });
-  };
-
-  const navigateToSettings = () => {
-    navigate('/settings');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Clock className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <PageLayout title="Dashboard">
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="p-6">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">DevFlow</span>
+            <div className="p-3 bg-primary/10 rounded-lg">
+              <Play className="w-6 h-6 text-primary" />
             </div>
-
-            {/* Organization Switcher */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Building2 className="h-4 w-4" />
-                  {currentOrg?.name}
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64">
-                <DropdownMenuLabel>Your Organizations</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {organizations.map((org) => (
-                  <DropdownMenuItem
-                    key={org.id}
-                    onClick={() => switchOrganization(org)}
-                    className="flex items-center justify-between cursor-pointer"
-                  >
-                    <span>{org.name}</span>
-                    {currentOrg?.id === org.id && (
-                      <span className="text-primary">✓</span>
-                    )}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => navigate('/onboarding')}
-                  className="cursor-pointer"
-                >
-                  <Building2 className="mr-2 h-4 w-4" />
-                  Create Organization
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div>
+              <h3 className="font-semibold">Start Timer</h3>
+              <p className="text-sm text-muted-foreground">Track time on tasks</p>
+            </div>
           </div>
+          <Button className="w-full mt-4" onClick={() => navigate("/time-entries")}>
+            Start Timer
+          </Button>
+        </Card>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary">
-                    {user?.email?.[0].toUpperCase()}
-                  </span>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={navigateToSettings} className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <Card className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-green-500/10 rounded-lg">
+              <Plus className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Create Task</h3>
+              <p className="text-sm text-muted-foreground">Add new task</p>
+            </div>
+          </div>
+          <Button className="w-full mt-4" variant="outline" onClick={() => navigate("/tasks")}>
+            Create Task
+          </Button>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-500/10 rounded-lg">
+              <Calendar className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Timesheets</h3>
+              <p className="text-sm text-muted-foreground">Submit weekly hours</p>
+            </div>
+          </div>
+          <Button className="w-full mt-4" variant="outline" onClick={() => navigate("/timesheets")}>
+            View Timesheets
+          </Button>
+        </Card>
+      </div>
+
+      {/* Today's Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card className="p-6">
+          <div className="text-sm text-muted-foreground mb-2">Total Hours Today</div>
+          <div className="text-3xl font-bold">0.0h</div>
+          <div className="text-sm text-green-600 mt-2">+0% vs yesterday</div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="text-sm text-muted-foreground mb-2">Tasks Completed</div>
+          <div className="text-3xl font-bold">0</div>
+          <div className="text-sm text-muted-foreground mt-2">0 active tasks</div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="text-sm text-muted-foreground mb-2">Active Tasks</div>
+          <div className="text-3xl font-bold">0</div>
+          <div className="text-sm text-muted-foreground mt-2">In progress</div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="text-sm text-muted-foreground mb-2">Pending Timesheets</div>
+          <div className="text-3xl font-bold">0</div>
+          <div className="text-sm text-muted-foreground mt-2">Awaiting approval</div>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+        <div className="text-center text-muted-foreground py-8">
+          No recent activity. Start tracking time to see your activity here.
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
-          <p className="text-muted-foreground">
-            You're viewing {currentOrg?.name} • {currentOrg?.role}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                Quick Start
-              </CardTitle>
-              <CardDescription>
-                Start tracking time on your tasks
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full">Start Timer</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Team Management
-              </CardTitle>
-              <CardDescription>
-                Manage your team and invite members
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/teams')}
-              >
-                Manage Teams
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderOpen className="h-5 w-5 text-primary" />
-                Projects
-              </CardTitle>
-              <CardDescription>
-                Manage projects and track progress
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/projects')}
-              >
-                View Projects
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckSquare className="h-5 w-5 text-primary" />
-                Tasks
-              </CardTitle>
-              <CardDescription>
-                Create and manage tasks
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/tasks')}
-              >
-                View Tasks
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Timer className="h-5 w-5 text-primary" />
-                Pomodoro Timer
-              </CardTitle>
-              <CardDescription>
-                Focus sessions with Pomodoro technique
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/pomodoro')}
-              >
-                Start Pomodoro
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ListChecks className="h-5 w-5 text-primary" />
-                Time Entries
-              </CardTitle>
-              <CardDescription>
-                View and manage your logged time
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/time-entries')}
-              >
-                View Time Entries
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                Timesheets
-              </CardTitle>
-              <CardDescription>
-                Submit weekly timesheets for approval
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/timesheets')}
-              >
-                View Timesheets
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Analytics
-              </CardTitle>
-              <CardDescription>
-                Track productivity and insights
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/analytics')}
-              >
-                View Analytics
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Reports
-              </CardTitle>
-              <CardDescription>
-                Generate billing and compliance reports
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate('/reports')}
-              >
-                View Reports
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                Organization
-              </CardTitle>
-              <CardDescription>
-                View organization details and settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={navigateToSettings}
-              >
-                View Settings
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-12 p-8 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border">
-          <h2 className="text-2xl font-bold mb-4">🎉 Phase 1 Complete!</h2>
-          <p className="text-muted-foreground mb-4">
-            Authentication and multi-tenancy are now fully implemented. You can:
-          </p>
-          <ul className="space-y-2 text-muted-foreground">
-            <li>✓ Sign up and sign in with email/password</li>
-            <li>✓ Create organizations with unique slugs</li>
-            <li>✓ Join organizations via invite codes</li>
-            <li>✓ Switch between multiple organizations</li>
-            <li>✓ Manage team members (coming next in Settings)</li>
-          </ul>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Ready to proceed to Phase 2: Teams & Projects?
-          </p>
-        </div>
-      </main>
-    </div>
+      </Card>
+    </PageLayout>
   );
-};
-
-export default Dashboard;
+}

@@ -340,12 +340,15 @@ const Tasks = () => {
   }
 
   return (
-    <PageLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Tasks</h1>
-          <p className="text-muted-foreground">Manage your tasks and subtasks</p>
-        </div>
+    <PageLayout 
+      title="Tasks"
+      breadcrumbs={[
+        { label: "Home", href: "/dashboard" },
+        { label: "Tasks" }
+      ]}
+    >
+      <p className="text-muted-foreground mb-6">Manage your tasks and subtasks</p>
+      <div className="flex justify-end mb-6">
         <Button onClick={() => setCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create Task

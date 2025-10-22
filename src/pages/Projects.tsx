@@ -328,12 +328,15 @@ export default function Projects() {
   const canManageProjects = activeOrg?.role === "admin" || activeOrg?.role === "manager";
 
   return (
-    <PageLayout>
+    <PageLayout 
+      title="Projects"
+      breadcrumbs={[
+        { label: "Home", href: "/dashboard" },
+        { label: "Projects" }
+      ]}
+    >
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-muted-foreground mt-1">Manage your organization's projects</p>
-        </div>
+        <p className="text-muted-foreground">Manage your organization's projects</p>
         {canManageProjects && canCreateProject && (
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>

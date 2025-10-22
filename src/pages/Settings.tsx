@@ -242,21 +242,14 @@ const Settings = () => {
   }
 
   return (
-    <PageLayout>
-      <Button
-        variant="ghost"
-        onClick={() => navigate('/dashboard')}
-        className="mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Dashboard
-      </Button>
-
-      <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Organization Settings</h1>
-            <p className="text-muted-foreground">{currentOrg?.name}</p>
-          </div>
+    <PageLayout 
+      title="Organization Settings"
+      breadcrumbs={[
+        { label: "Home", href: "/dashboard" },
+        { label: "Settings" }
+      ]}
+    >
+      <p className="text-muted-foreground mb-6">{currentOrg?.name}</p>
 
           {/* Quick Links - Admin Only */}
           {userRole === 'admin' && (
@@ -383,7 +376,6 @@ const Settings = () => {
 
           {/* Subscription Info */}
           <SubscriptionCard organizationId={currentOrg?.id} onUpdate={loadOrgData} />
-        </div>
     </PageLayout>
   );
 };

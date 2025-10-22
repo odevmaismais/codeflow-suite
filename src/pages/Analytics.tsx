@@ -444,7 +444,13 @@ const Analytics = () => {
 
   if (isLoading) {
     return (
-      <PageLayout>
+      <PageLayout 
+        title="Analytics" 
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Analytics" }
+        ]}
+      >
         <div className="flex items-center justify-center py-12">
           <Clock className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -453,13 +459,14 @@ const Analytics = () => {
   }
 
   return (
-    <PageLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Analytics & Insights</h1>
-          <p className="text-muted-foreground">Track productivity, velocity, and billable hours</p>
-        </div>
-      </div>
+    <PageLayout 
+      title="Analytics & Insights"
+      breadcrumbs={[
+        { label: "Home", href: "/dashboard" },
+        { label: "Analytics" }
+      ]}
+    >
+      <p className="text-muted-foreground mb-6">Track productivity, velocity, and billable hours</p>
 
       {/* Filters Bar */}
       <div className="mb-6">

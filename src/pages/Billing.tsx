@@ -228,22 +228,16 @@ export default function Billing() {
   const isTrialing = subscription.status === "trialing";
 
   return (
-    <PageLayout>
+    <PageLayout 
+      title="Billing & Subscription"
+      breadcrumbs={[
+        { label: "Home", href: "/dashboard" },
+        { label: "Settings", href: "/settings" },
+        { label: "Billing" }
+      ]}
+    >
       <div className="max-w-6xl">
-      {/* Breadcrumb */}
-      <div className="text-sm text-muted-foreground mb-4">
-        <span className="hover:underline cursor-pointer" onClick={() => navigate("/settings")}>
-          Settings
-        </span>
-        {" > "}
-        <span>Billing</span>
-      </div>
-
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Billing & Subscription</h1>
-        <p className="text-muted-foreground">Manage your plan and payment methods</p>
-      </div>
+      <p className="text-muted-foreground mb-8">Manage your plan and payment methods</p>
 
       {/* Current Plan Card */}
       <Card className="p-6 mb-6">
