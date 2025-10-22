@@ -24,6 +24,8 @@ import Analytics from "./pages/Analytics";
 import Reports from "./pages/Reports";
 import DeveloperSettings from "./pages/DeveloperSettings";
 import NotFound from "./pages/NotFound";
+import AccessDenied from "./pages/AccessDenied";
+import ServerError from "./pages/ServerError";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,9 @@ const App = () => (
             <Route path="/settings/developer" element={<DeveloperSettings />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/reports" element={<Reports />} />
+            {/* Error Pages */}
+            <Route path="/403" element={<AccessDenied />} />
+            <Route path="/500" element={<ServerError />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

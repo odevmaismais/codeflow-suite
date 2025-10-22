@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { FolderOpen, Plus, DollarSign, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { z } from "zod";
+import { PageLayout } from "@/components/PageLayout";
+import { CardSkeleton } from "@/components/CardSkeleton";
 
 const projectSchema = z.object({
   code: z.string().regex(/^[A-Z]+-[0-9]+$/, "Project code must be uppercase letters, hyphen, then numbers (e.g., PROJ-001)").optional().or(z.literal("")),
@@ -304,23 +306,31 @@ export default function Projects() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <PageLayout>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Projects</h1>
+              <p className="text-muted-foreground mt-1">Manage your organization's projects</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+        </div>
+      </PageLayout>
     );
   }
 
   const canManageProjects = activeOrg?.role === "admin" || activeOrg?.role === "manager";
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
-      </Button>
-      
-      <div className="flex justify-between items-center mb-6">
-        <div>
+    <PageLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Projects</h1>
           <p className="text-muted-foreground mt-1">Manage your organization's projects</p>
         </div>
@@ -558,6 +568,6 @@ export default function Projects() {
           ))}
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }
