@@ -1033,6 +1033,7 @@ export type Database = {
         Returns: string
       }
       redact_sensitive_fields: { Args: { p_values: Json }; Returns: Json }
+      reset_database_for_org: { Args: { p_org_id: string }; Returns: string }
       start_trial: { Args: { p_org_id: string }; Returns: boolean }
       update_task_actual_hours: {
         Args: { p_task_id: string }
