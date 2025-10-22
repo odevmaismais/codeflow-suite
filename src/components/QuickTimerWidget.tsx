@@ -101,6 +101,8 @@ export function QuickTimerWidget() {
   function handleStop() {
     try {
       const { startTime, endTime, duration } = stopTimer();
+      
+      // Always show save modal on stop - task selection happens here if not set
       setSaveData({
         taskId: timerState.taskId,
         projectId: timerState.projectId,
@@ -256,14 +258,13 @@ export function QuickTimerWidget() {
             </div>
 
             <div className="space-y-2">
-              <Label>Task (optional)</Label>
+              <Label>Task (optional - can be set on stop)</Label>
               <Select
                 value={timerState.taskId || ''}
                 onValueChange={(value) => {
                   const task = tasks.find(t => t.id === value);
                   updateTimerTask(value, task?.code || null, task?.project_id || null);
                 }}
-                disabled={timerState.isRunning}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a task…" />
@@ -343,8 +344,29 @@ export function QuickTimerWidget() {
                 </div>
               </div>
               <div>
-                <Label>Task</Label>
-                <div>{timerState.taskCode || 'No task'}</div>
+                <Label>Task (required)</Label>
+                <Select
+                  value={saveData.taskId || ''}
+                  onValueChange={(value) => {
+                    const task = tasks.find(t => t.id === value);
+                    setSaveData({ 
+                      ...saveData, 
+                      taskId: value,
+                      projectId: task?.project_id || null
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a task…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tasks.map(task => (
+                      <SelectItem key={task.id} value={task.id}>
+                        {task.code} - {task.title} {task.project_name && `(${task.project_name})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Description</Label>
@@ -352,6 +374,7 @@ export function QuickTimerWidget() {
                   value={saveData.description}
                   onChange={(e) => setSaveData({ ...saveData, description: e.target.value })}
                   rows={3}
+                  placeholder="What did you work on?"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -368,7 +391,9 @@ export function QuickTimerWidget() {
             <Button variant="outline" onClick={handleDiscardTimeEntry}>
               Discard
             </Button>
-            <Button onClick={handleSaveTimeEntry}>Save</Button>
+            <Button onClick={handleSaveTimeEntry} disabled={!saveData?.taskId}>
+              Save Entry
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

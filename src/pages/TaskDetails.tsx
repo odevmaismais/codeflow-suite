@@ -23,6 +23,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { 
   Home, 
   MessageSquare, 
@@ -30,10 +38,14 @@ import {
   Eye,
   Send,
   Download,
-  Trash2
+  Trash2,
+  Timer,
+  Clock
 } from "lucide-react";
 import { format } from "date-fns";
 import { CreateTaskDialog } from "@/components/CreateTaskDialog";
+import { LogTimeManuallyDialog } from "@/components/LogTimeManuallyDialog";
+import { useTimer } from "@/contexts/TimerContext";
 
 interface TaskDetails {
   id: string;
@@ -101,10 +113,29 @@ interface OrgMember {
   email: string;
 }
 
+interface TimeEntry {
+  id: string;
+  start_time: string;
+  duration_seconds: number;
+  description: string | null;
+  is_billable: boolean;
+  timer_type: string;
+}
+
+interface AuditLog {
+  id: string;
+  created_at: string;
+  action: string;
+  old_values: any;
+  new_values: any;
+  user_id: string;
+}
+
 const TaskDetails = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { startTimer, timerState, updateTimerTask } = useTimer();
   
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<TaskDetails | null>(null);
@@ -124,6 +155,9 @@ const TaskDetails = () => {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState("");
   const [mentionPosition, setMentionPosition] = useState(0);
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [logTimeOpen, setLogTimeOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -153,6 +187,8 @@ const TaskDetails = () => {
       loadAttachments(),
       loadWatchers(user.id),
       loadOrgMembers(org.id),
+      loadTimeEntries(),
+      loadAuditLogs(),
     ]);
 
     setLoading(false);
@@ -676,6 +712,60 @@ const TaskDetails = () => {
     }
   }
 
+  async function loadTimeEntries() {
+    const { data } = await supabase
+      .from("time_entries")
+      .select("id, start_time, duration_seconds, description, is_billable, timer_type")
+      .eq("task_id", taskId)
+      .is("deleted_at", null)
+      .order("start_time", { ascending: false })
+      .limit(10);
+
+    if (data) {
+      setTimeEntries(data);
+    }
+  }
+
+  async function loadAuditLogs() {
+    const { data } = await supabase
+      .from("audit_logs")
+      .select("id, created_at, action, old_values, new_values, user_id")
+      .eq("record_id", taskId)
+      .eq("table_name", "tasks")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (data) {
+      setAuditLogs(data);
+    }
+  }
+
+  function formatDuration(seconds: number): string {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    if (hrs > 0) return `${hrs}h ${mins}m`;
+    return `${mins}m`;
+  }
+
+  function formatAuditChange(log: AuditLog): string {
+    if (log.action === 'INSERT') return 'Task created';
+    if (log.action === 'DELETE') return 'Task deleted';
+    
+    if (log.action === 'UPDATE' && log.old_values && log.new_values) {
+      const changes: string[] = [];
+      for (const key in log.new_values) {
+        if (log.old_values[key] !== log.new_values[key]) {
+          changes.push(`${key}: ${log.old_values[key]} → ${log.new_values[key]}`);
+        }
+      }
+      return changes.length > 0 ? changes.join(', ') : 'Task updated';
+    }
+    
+    return 'Task updated';
+  }
+
+  const isTimerRunningForTask = timerState.isRunning && timerState.taskId === taskId;
+
   if (loading || !task) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -965,6 +1055,120 @@ const TaskDetails = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Time Tracking */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Time Tracking</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => {
+                    if (task && taskId) {
+                      // Update task in timer before starting
+                      updateTimerTask(taskId, task.code, task.project_id);
+                      startTimer('pomodoro_focus', 25 * 60);
+                    }
+                  }}
+                  disabled={timerState.isRunning}
+                  size="sm"
+                >
+                  <Timer className="w-4 h-4 mr-2" />
+                  Start Pomodoro (25m)
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (task && taskId) {
+                      // Update task in timer before starting
+                      updateTimerTask(taskId, task.code, task.project_id);
+                      startTimer('quick_timer');
+                    }
+                  }}
+                  disabled={timerState.isRunning}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Start Quick Timer
+                </Button>
+                <Button 
+                  onClick={() => setLogTimeOpen(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Log Time
+                </Button>
+              </div>
+
+              {isTimerRunningForTask && (
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Timer running</div>
+                      <div className="text-2xl font-bold">{formatDuration(timerState.elapsedSeconds)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-semibold mb-2">Recent Time Entries</h4>
+                {timeEntries.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Type</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {timeEntries.map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell>{format(new Date(entry.start_time), "MMM d")}</TableCell>
+                          <TableCell>{formatDuration(entry.duration_seconds)}</TableCell>
+                          <TableCell className="max-w-xs truncate">{entry.description || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant={entry.timer_type === 'pomodoro_focus' ? 'default' : 'outline'}>
+                              {entry.timer_type.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No time entries yet</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {auditLogs.length > 0 ? (
+                <div className="space-y-3">
+                  {auditLogs.map((log) => (
+                    <div key={log.id} className="border-l-2 border-muted pl-4">
+                      <div className="text-sm">{formatAuditChange(log)}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {format(new Date(log.created_at), "MMM d, yyyy 'at' h:mm a")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No activity yet</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -1074,6 +1278,15 @@ const TaskDetails = () => {
         }}
         projectId={task.project_id || undefined}
         parentTaskId={task.id}
+      />
+
+      <LogTimeManuallyDialog
+        open={logTimeOpen}
+        onOpenChange={setLogTimeOpen}
+        onSuccess={() => {
+          setLogTimeOpen(false);
+          loadTimeEntries();
+        }}
       />
     </div>
   );

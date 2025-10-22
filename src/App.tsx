@@ -15,7 +15,6 @@ import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
 import Tasks from "./pages/Tasks";
 import TaskDetails from "./pages/TaskDetails";
-import PomodoroTimer from "./pages/PomodoroTimer";
 import TimeEntries from "./pages/TimeEntries";
 import Timesheets from "./pages/Timesheets";
 import TimesheetApprovals from "./pages/TimesheetApprovals";
@@ -48,7 +47,6 @@ const App = () => (
             <Route path="/projects/:projectId" element={<ProjectDetails />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/tasks/:taskId" element={<TaskDetails />} />
-            <Route path="/pomodoro" element={<PomodoroTimer />} />
             <Route path="/time-entries" element={<TimeEntries />} />
             <Route path="/timesheets" element={<Timesheets />} />
             <Route path="/timesheets/approvals" element={<TimesheetApprovals />} />
