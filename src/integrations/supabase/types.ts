@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          new_values: Json | null
+          old_values: Json | null
+          organization_id: string
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_values?: Json | null
+          old_values?: Json | null
+          organization_id: string
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_values?: Json | null
+          old_values?: Json | null
+          organization_id?: string
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invite_codes: {
         Row: {
           code: string
@@ -846,26 +896,17 @@ export type Database = {
           total_hours: number
         }[]
       }
-      check_project_limit: {
-        Args: { p_org_id: string }
-        Returns: boolean
-      }
+      check_project_limit: { Args: { p_org_id: string }; Returns: boolean }
       check_subscription_limit: {
         Args: { p_org_id: string; p_resource_type: string }
         Returns: boolean
       }
-      check_subtasks_complete: {
-        Args: { p_task_id: string }
-        Returns: boolean
-      }
+      check_subtasks_complete: { Args: { p_task_id: string }; Returns: boolean }
       check_task_limit: {
         Args: { p_org_id: string; p_project_id: string }
         Returns: boolean
       }
-      check_team_limit: {
-        Args: { p_org_id: string }
-        Returns: boolean
-      }
+      check_team_limit: { Args: { p_org_id: string }; Returns: boolean }
       check_time_entry_limit: {
         Args: { p_org_id: string; p_user_id: string }
         Returns: boolean
@@ -887,26 +928,11 @@ export type Database = {
         Args: { p_org_name: string; p_timezone: string; p_user_id: string }
         Returns: string
       }
-      end_trial: {
-        Args: { p_org_id: string }
-        Returns: boolean
-      }
-      extract_mentions: {
-        Args: { p_content: string }
-        Returns: string[]
-      }
-      format_duration: {
-        Args: { p_seconds: number }
-        Returns: string
-      }
-      generate_invite_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_project_code: {
-        Args: { p_org_id: string }
-        Returns: string
-      }
+      end_trial: { Args: { p_org_id: string }; Returns: boolean }
+      extract_mentions: { Args: { p_content: string }; Returns: string[] }
+      format_duration: { Args: { p_seconds: number }; Returns: string }
+      generate_invite_code: { Args: never; Returns: string }
+      generate_project_code: { Args: { p_org_id: string }; Returns: string }
       generate_task_code: {
         Args: {
           p_org_id: string
@@ -915,10 +941,7 @@ export type Database = {
         }
         Returns: string
       }
-      generate_unique_slug: {
-        Args: { org_name: string }
-        Returns: string
-      }
+      generate_unique_slug: { Args: { org_name: string }; Returns: string }
       get_org_members_with_emails: {
         Args: { p_org_id: string }
         Returns: {
@@ -993,10 +1016,7 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_user_email: {
-        Args: { p_user_id: string }
-        Returns: string
-      }
+      get_user_email: { Args: { p_user_id: string }; Returns: string }
       get_user_organizations: {
         Args: { p_user_id: string }
         Returns: {
@@ -1012,10 +1032,8 @@ export type Database = {
         Args: { p_invite_code: string; p_user_id: string }
         Returns: string
       }
-      start_trial: {
-        Args: { p_org_id: string }
-        Returns: boolean
-      }
+      redact_sensitive_fields: { Args: { p_values: Json }; Returns: Json }
+      start_trial: { Args: { p_org_id: string }; Returns: boolean }
       update_task_actual_hours: {
         Args: { p_task_id: string }
         Returns: undefined
