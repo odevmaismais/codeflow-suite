@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { CreateTaskDialog } from "@/components/CreateTaskDialog";
+import { PageLayout } from "@/components/PageLayout";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Task {
   id: string;
@@ -338,12 +340,7 @@ const Tasks = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
-      </Button>
-
+    <PageLayout>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Tasks</h1>
@@ -425,9 +422,13 @@ const Tasks = () => {
         <TabsContent value="list" className="mt-6">
           <div className="space-y-4">
             {filteredTasks.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No tasks found. Create your first task to get started!
-              </p>
+              <EmptyState
+                icon={CheckSquare}
+                title="No tasks yet"
+                description="Create your first task to start tracking work."
+                actionLabel="Create Task"
+                onAction={() => setCreateDialogOpen(true)}
+              />
             ) : (
               filteredTasks.map(task => <TaskCard key={task.id} task={task} />)
             )}
@@ -447,7 +448,7 @@ const Tasks = () => {
           loadData();
         }}
       />
-    </div>
+    </PageLayout>
   );
 };
 

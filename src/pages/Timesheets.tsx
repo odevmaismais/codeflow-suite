@@ -5,12 +5,12 @@ import { getCurrentOrganization } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { toast } from "@/hooks/use-toast";
 import { Calendar, Plus, Trash2, Send } from "lucide-react";
 import { CreateTimesheetDialog } from "@/components/CreateTimesheetDialog";
 import { SubmitTimesheetDialog } from "@/components/SubmitTimesheetDialog";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
+import { PageLayout } from "@/components/PageLayout";
 
 interface Timesheet {
   id: string;
@@ -216,19 +216,7 @@ export default function Timesheets() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Timesheets</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <PageLayout>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Timesheets</h1>
@@ -408,6 +396,6 @@ export default function Timesheets() {
           onSuccess={loadTimesheetData}
         />
       )}
-    </div>
+    </PageLayout>
   );
 }

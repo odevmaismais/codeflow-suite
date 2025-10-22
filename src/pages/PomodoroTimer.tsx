@@ -11,7 +11,7 @@ import { Play, Pause, Square, SkipForward } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentOrganization } from '@/lib/auth';
-import { Link } from 'react-router-dom';
+import { PageLayout } from '@/components/PageLayout';
 
 const FOCUS_DURATION = 25 * 60; // 25 minutes
 const BREAK_DURATION = 5 * 60; // 5 minutes
@@ -276,21 +276,7 @@ export default function PomodoroTimer() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/">Home</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Pomodoro Timer</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <PageLayout>
       <div>
         <h1 className="text-2xl font-bold">Pomodoro Timer</h1>
         <p className="text-muted-foreground">Focus for 25 minutes, break for 5 minutes</p>
@@ -430,6 +416,6 @@ export default function PomodoroTimer() {
           )}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

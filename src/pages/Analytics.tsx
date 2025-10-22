@@ -27,6 +27,7 @@ import {
 import Papa from 'papaparse';
 import { LineChart, Line, PieChart, Pie, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks, subMonths } from 'date-fns';
+import { PageLayout } from '@/components/PageLayout';
 
 const COLORS = {
   primary: '#3B82F6',
@@ -443,32 +444,27 @@ const Analytics = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Clock className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <PageLayout>
+        <div className="flex items-center justify-center py-12">
+          <Clock className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      {/* Header with Breadcrumb */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Home className="h-4 w-4" />
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">Analytics</span>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Analytics & Insights</h1>
-          <p className="text-sm text-muted-foreground">Track productivity, velocity, and billable hours</p>
+    <PageLayout>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Analytics & Insights</h1>
+          <p className="text-muted-foreground">Track productivity, velocity, and billable hours</p>
         </div>
-      </header>
+      </div>
 
       {/* Filters Bar */}
-      <div className="border-b bg-card/30 backdrop-blur-sm sticky top-[73px] z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex flex-wrap gap-4 items-center">
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex flex-wrap gap-4 items-center">
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Date Range" />
@@ -561,12 +557,9 @@ const Analytics = () => {
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -749,8 +742,7 @@ const Analytics = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+    </PageLayout>
   );
 };
 

@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, getUserOrganizations, Organization } from '@/lib/auth';
 import { ArrowLeft, Copy, UserPlus, Clock, CreditCard } from 'lucide-react';
 import { SubscriptionCard } from '@/components/SubscriptionCard';
+import { PageLayout } from '@/components/PageLayout';
 
 interface TeamMember {
   id: string;
@@ -241,18 +242,17 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/dashboard')}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
+    <PageLayout>
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/dashboard')}
+        className="mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Dashboard
+      </Button>
 
-        <div className="space-y-6">
+      <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">Organization Settings</h1>
             <p className="text-muted-foreground">{currentOrg?.name}</p>
@@ -384,8 +384,7 @@ const Settings = () => {
           {/* Subscription Info */}
           <SubscriptionCard organizationId={currentOrg?.id} onUpdate={loadOrgData} />
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CreditCard, Check, X, Download, ExternalLink, Sparkles } from "lucide-react";
 import { UpgradeToPro } from "@/components/UpgradeToPro";
 import { CancelSubscription } from "@/components/CancelSubscription";
+import { PageLayout } from '@/components/PageLayout';
 
 interface Subscription {
   id: string;
@@ -227,13 +228,10 @@ export default function Billing() {
   const isTrialing = subscription.status === "trialing";
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <PageLayout>
+      <div className="max-w-6xl">
       {/* Breadcrumb */}
       <div className="text-sm text-muted-foreground mb-4">
-        <span className="hover:underline cursor-pointer" onClick={() => navigate("/dashboard")}>
-          Home
-        </span>
-        {" > "}
         <span className="hover:underline cursor-pointer" onClick={() => navigate("/settings")}>
           Settings
         </span>
@@ -475,6 +473,7 @@ export default function Billing() {
           onSuccess={loadBillingData}
         />
       )}
-    </div>
+      </div>
+    </PageLayout>
   );
 }

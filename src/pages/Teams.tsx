@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus, ArrowLeft } from "lucide-react";
 import { z } from "zod";
+import { PageLayout } from '@/components/PageLayout';
+import { EmptyState } from '@/components/EmptyState';
 
 const teamSchema = z.object({
   name: z.string()
@@ -190,7 +192,7 @@ export default function Teams() {
   const canManageTeams = activeOrg?.role === "admin" || activeOrg?.role === "manager";
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <PageLayout>
       <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Dashboard
@@ -273,21 +275,13 @@ export default function Teams() {
       )}
 
       {teams.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Users className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No teams yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create your first team to start organizing your members
-            </p>
-            {canManageTeams && canCreateTeam && (
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Team
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Users}
+          title="No teams yet"
+          description="Create your first team to start organizing your members"
+          actionLabel={canManageTeams && canCreateTeam ? "Create Team" : undefined}
+          onAction={canManageTeams && canCreateTeam ? () => setIsCreateModalOpen(true) : undefined}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teams.map((team) => (
@@ -314,6 +308,6 @@ export default function Teams() {
           ))}
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

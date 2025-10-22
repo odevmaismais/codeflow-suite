@@ -12,8 +12,9 @@ import { Edit, Trash2, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentOrganization } from '@/lib/auth';
-import { Link } from 'react-router-dom';
 import { LogTimeManuallyDialog } from '@/components/LogTimeManuallyDialog';
+import { PageLayout } from '@/components/PageLayout';
+import { EmptyState } from '@/components/EmptyState';
 
 interface TimeEntry {
   id: string;
@@ -181,21 +182,7 @@ export default function TimeEntries() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/">Home</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Time Entries</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <PageLayout>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Time Entries</h1>
         <Button onClick={() => setShowLogDialog(true)}>
@@ -259,10 +246,14 @@ export default function TimeEntries() {
               </TableRow>
             ) : entries.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-8">
-                  <div className="text-muted-foreground">
-                    No time entries yet. Start tracking time!
-                  </div>
+                <TableCell colSpan={11} className="text-center py-12">
+                  <EmptyState
+                    icon={Plus}
+                    title="No time entries yet"
+                    description="Start a timer or log time manually to begin tracking."
+                    actionLabel="Log Time"
+                    onAction={() => setShowLogDialog(true)}
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -342,6 +333,6 @@ export default function TimeEntries() {
           loadTimeEntries();
         }}
       />
-    </div>
+    </PageLayout>
   );
 }

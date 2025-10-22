@@ -4,10 +4,12 @@ import { getCurrentOrganization } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ReviewTimesheetDialog } from "@/components/ReviewTimesheetDialog";
+import { PageLayout } from '@/components/PageLayout';
+import { EmptyState } from '@/components/EmptyState';
+import { Calendar } from "lucide-react";
 
 interface TimesheetForReview {
   id: string;
@@ -124,24 +126,8 @@ export default function TimesheetApprovals() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/timesheets">Timesheets</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Approvals</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <div className="flex justify-between items-center">
+    <PageLayout>
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Timesheet Approvals</h1>
           <p className="text-muted-foreground">Review and approve team timesheets</p>
@@ -179,11 +165,11 @@ export default function TimesheetApprovals() {
           <CardContent className="p-6">Loading...</CardContent>
         </Card>
       ) : timesheets.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground">No timesheets pending approval</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Calendar}
+          title="No timesheets pending approval"
+          description="Team members haven't submitted any timesheets yet."
+        />
       ) : (
         <div className="grid gap-4">
           {timesheets.map((timesheet) => (
@@ -245,6 +231,6 @@ export default function TimesheetApprovals() {
           }}
         />
       )}
-    </div>
+    </PageLayout>
   );
 }

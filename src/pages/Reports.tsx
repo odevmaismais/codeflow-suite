@@ -31,8 +31,6 @@ import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
 import {
   Clock,
-  Home,
-  ChevronRight,
   DollarSign,
   Calendar,
   TrendingUp,
@@ -42,6 +40,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, subMonths } from 'date-fns';
+import { PageLayout } from '@/components/PageLayout';
+import { EmptyState } from '@/components/EmptyState';
 
 interface ReportTemplate {
   id: string;
@@ -600,33 +600,27 @@ const Reports = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Clock className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <PageLayout>
+        <div className="flex items-center justify-center py-12">
+          <Clock className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      {/* Header with Breadcrumb */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Home className="h-4 w-4" />
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">Reports</span>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Reports</h1>
-          <p className="text-sm text-muted-foreground">
+    <PageLayout>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Reports</h1>
+          <p className="text-muted-foreground">
             Generate and export reports for billing, compliance, and retrospectives
           </p>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Report Templates */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      {/* Report Templates */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {REPORT_TEMPLATES.map((template) => (
             <Card key={template.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
@@ -692,7 +686,6 @@ const Reports = () => {
             </Card>
           </div>
         )}
-      </main>
 
       {/* Generate Report Modal */}
       <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
@@ -857,7 +850,7 @@ const Reports = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageLayout>
   );
 };
 
