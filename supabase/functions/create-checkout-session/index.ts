@@ -28,13 +28,26 @@ serve(async (req) => {
       );
     }
 
-    // Create checkout session
+    const priceId = Deno.env.get('STRIPE_PRO_PRICE_ID');
+    if (!priceId) {
+      console.error('STRIPE_PRO_PRICE_ID not configured');
+      return new Response(
+        JSON.stringify({ error: 'Stripe price not configured' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('Creating checkout session with price:', priceId);
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
         {
-          price: Deno.env.get('STRIPE_PRO_PRICE_ID'), // Set this in Supabase secrets
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -45,6 +58,8 @@ serve(async (req) => {
         organization_id,
       },
     });
+
+    console.log('Checkout session created:', session.id);
 
     return new Response(
       JSON.stringify({ url: session.url }),

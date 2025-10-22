@@ -46,14 +46,12 @@ export function UpgradeToPro({ open, onClose, organizationId, hasTrialed }: Upgr
     try {
       setLoading(true);
 
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Please log in to upgrade");
         return;
       }
 
-      // Create Stripe checkout session
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
           organization_id: organizationId,
@@ -63,12 +61,16 @@ export function UpgradeToPro({ open, onClose, organizationId, hasTrialed }: Upgr
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Checkout error:", error);
+        toast.error("Failed to start checkout");
+        return;
+      }
 
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        toast.error("Failed to create checkout session");
+        toast.error("No checkout URL returned");
       }
     } catch (error: any) {
       console.error("Error creating checkout:", error);

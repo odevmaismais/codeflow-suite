@@ -52,6 +52,16 @@ export default function Billing() {
 
   useEffect(() => {
     loadBillingData();
+    
+    // Check for success/cancel params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      toast.success('Subscription activated successfully!');
+      window.history.replaceState({}, '', '/settings/billing');
+    } else if (params.get('canceled') === 'true') {
+      toast.error('Checkout canceled');
+      window.history.replaceState({}, '', '/settings/billing');
+    }
   }, []);
 
   const loadBillingData = async () => {

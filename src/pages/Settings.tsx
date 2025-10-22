@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, getUserOrganizations, Organization } from '@/lib/auth';
 import { ArrowLeft, Copy, UserPlus, Clock, CreditCard } from 'lucide-react';
+import { SubscriptionCard } from '@/components/SubscriptionCard';
 
 interface TeamMember {
   id: string;
@@ -375,30 +376,7 @@ const Settings = () => {
           </Card>
 
           {/* Subscription Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscription</CardTitle>
-              <CardDescription>
-                Your current plan and billing information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Free Plan</p>
-                    <p className="text-sm text-muted-foreground">
-                      1 user • 1 team • 3 projects
-                    </p>
-                  </div>
-                  <Badge>Active</Badge>
-                </div>
-                <Button variant="outline" disabled>
-                  Upgrade to Pro
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <SubscriptionCard organizationId={currentOrg?.id} onUpdate={loadOrgData} />
         </div>
       </div>
     </div>
