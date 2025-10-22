@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { signOut, getCurrentUser, getUserOrganizations, Organization } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, ChevronDown, Clock, LogOut, Settings, Users, FolderOpen, CheckSquare, Timer, ListChecks } from 'lucide-react';
+import { Building2, ChevronDown, Clock, LogOut, Settings, Users, FolderOpen, CheckSquare, Timer, ListChecks, Calendar } from 'lucide-react';
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -285,6 +285,27 @@ const Dashboard = () => {
                 onClick={() => navigate('/time-entries')}
               >
                 View Time Entries
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Timesheets
+              </CardTitle>
+              <CardDescription>
+                Submit weekly timesheets for approval
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => navigate('/timesheets')}
+              >
+                View Timesheets
               </Button>
             </CardContent>
           </Card>

@@ -628,6 +628,104 @@ export type Database = {
           },
         ]
       }
+      timesheet_entries: {
+        Row: {
+          created_at: string | null
+          id: string
+          time_entry_id: string
+          timesheet_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          time_entry_id: string
+          timesheet_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          time_entry_id?: string
+          timesheet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_entries_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheet_entries_timesheet_id_fkey"
+            columns: ["timesheet_id"]
+            isOneToOne: false
+            referencedRelation: "timesheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timesheets: {
+        Row: {
+          billable_hours: number | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          organization_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string | null
+          total_hours: number | null
+          updated_at: string | null
+          user_id: string
+          week_end_date: string
+          week_start_date: string
+        }
+        Insert: {
+          billable_hours?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          organization_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
+          user_id: string
+          week_end_date: string
+          week_start_date: string
+        }
+        Update: {
+          billable_hours?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          organization_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
+          user_id?: string
+          week_end_date?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_organizations: {
         Row: {
           id: string
@@ -675,6 +773,13 @@ export type Database = {
       calculate_duration_seconds: {
         Args: { p_end_time: string; p_start_time: string }
         Returns: number
+      }
+      calculate_timesheet_hours: {
+        Args: { p_timesheet_id: string }
+        Returns: {
+          billable_hours: number
+          total_hours: number
+        }[]
       }
       check_project_limit: {
         Args: { p_org_id: string }
@@ -748,6 +853,19 @@ export type Database = {
           joined_at: string
           role: string
           user_id: string
+        }[]
+      }
+      get_orphaned_time_entries: {
+        Args: { p_user_id: string; p_week_start: string }
+        Returns: {
+          description: string
+          duration_seconds: number
+          end_time: string
+          id: string
+          is_billable: boolean
+          project_id: string
+          start_time: string
+          task_id: string
         }[]
       }
       get_tasks_with_details: {

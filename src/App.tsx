@@ -17,6 +17,8 @@ import Tasks from "./pages/Tasks";
 import TaskDetails from "./pages/TaskDetails";
 import PomodoroTimer from "./pages/PomodoroTimer";
 import TimeEntries from "./pages/TimeEntries";
+import Timesheets from "./pages/Timesheets";
+import TimesheetApprovals from "./pages/TimesheetApprovals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,8 @@ const App = () => (
             <Route path="/tasks/:taskId" element={<TaskDetails />} />
             <Route path="/pomodoro" element={<PomodoroTimer />} />
             <Route path="/time-entries" element={<TimeEntries />} />
+            <Route path="/timesheets" element={<Timesheets />} />
+            <Route path="/timesheets/approvals" element={<TimesheetApprovals />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
