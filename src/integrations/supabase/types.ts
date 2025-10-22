@@ -58,6 +58,59 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount_due: number
+          amount_paid: number
+          created_at: string | null
+          currency: string
+          hosted_invoice_url: string | null
+          id: string
+          invoice_pdf: string | null
+          organization_id: string
+          period_end: string | null
+          period_start: string | null
+          status: string
+          stripe_invoice_id: string
+        }
+        Insert: {
+          amount_due: number
+          amount_paid: number
+          created_at?: string | null
+          currency?: string
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf?: string | null
+          organization_id: string
+          period_end?: string | null
+          period_start?: string | null
+          status: string
+          stripe_invoice_id: string
+        }
+        Update: {
+          amount_due?: number
+          amount_paid?: number
+          created_at?: string | null
+          currency?: string
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf?: string | null
+          organization_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          stripe_invoice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -226,6 +279,8 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          cancel_at_period_end: boolean | null
+          canceled_at: string | null
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
@@ -234,11 +289,15 @@ export type Database = {
           plan: string
           status: string
           stripe_customer_id: string | null
+          stripe_price_id: string | null
           stripe_subscription_id: string | null
           trial_end: string | null
+          trial_start: string | null
           updated_at: string
         }
         Insert: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
@@ -247,11 +306,15 @@ export type Database = {
           plan?: string
           status?: string
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           trial_end?: string | null
+          trial_start?: string | null
           updated_at?: string
         }
         Update: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
@@ -260,8 +323,10 @@ export type Database = {
           plan?: string
           status?: string
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           trial_end?: string | null
+          trial_start?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -785,6 +850,10 @@ export type Database = {
         Args: { p_org_id: string }
         Returns: boolean
       }
+      check_subscription_limit: {
+        Args: { p_org_id: string; p_resource_type: string }
+        Returns: boolean
+      }
       check_subtasks_complete: {
         Args: { p_task_id: string }
         Returns: boolean
@@ -817,6 +886,10 @@ export type Database = {
       create_organization_with_admin: {
         Args: { p_org_name: string; p_timezone: string; p_user_id: string }
         Returns: string
+      }
+      end_trial: {
+        Args: { p_org_id: string }
+        Returns: boolean
       }
       extract_mentions: {
         Args: { p_content: string }
@@ -866,6 +939,15 @@ export type Database = {
           project_id: string
           start_time: string
           task_id: string
+        }[]
+      }
+      get_subscription_usage: {
+        Args: { p_org_id: string }
+        Returns: {
+          project_count: number
+          task_count: number
+          team_count: number
+          time_entry_count_month: number
         }[]
       }
       get_tasks_with_details: {
@@ -929,6 +1011,10 @@ export type Database = {
       join_organization_via_invite: {
         Args: { p_invite_code: string; p_user_id: string }
         Returns: string
+      }
+      start_trial: {
+        Args: { p_org_id: string }
+        Returns: boolean
       }
       update_task_actual_hours: {
         Args: { p_task_id: string }

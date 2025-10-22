@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, getUserOrganizations, Organization } from '@/lib/auth';
-import { ArrowLeft, Copy, UserPlus, Clock } from 'lucide-react';
+import { ArrowLeft, Copy, UserPlus, Clock, CreditCard } from 'lucide-react';
 
 interface TeamMember {
   id: string;
@@ -41,6 +41,7 @@ const Settings = () => {
   const [inviteCode, setInviteCode] = useState('');
   const [showCodeDialog, setShowCodeDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -67,6 +68,7 @@ const Settings = () => {
     }
 
     setCurrentOrg(activeOrg);
+    setUserRole(activeOrg.role);
     await loadMembers(activeOrg.id);
     setIsLoading(false);
   };
@@ -254,6 +256,25 @@ const Settings = () => {
             <h1 className="text-3xl font-bold mb-2">Organization Settings</h1>
             <p className="text-muted-foreground">{currentOrg?.name}</p>
           </div>
+
+          {/* Quick Links - Admin Only */}
+          {userRole === 'admin' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Links</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/settings/billing')}
+                  className="w-full sm:w-auto"
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Manage Billing & Subscription
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Team Members */}
           <Card>
