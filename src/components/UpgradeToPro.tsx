@@ -68,7 +68,14 @@ export function UpgradeToPro({ open, onClose, organizationId, hasTrialed }: Upgr
       }
 
       if (data?.url) {
-        window.location.href = data.url;
+        // Open checkout in new tab to avoid page loading issues
+        const checkoutWindow = window.open(data.url, '_blank');
+        if (!checkoutWindow) {
+          toast.error("Please allow pop-ups to complete checkout");
+        } else {
+          toast.success("Opening Stripe Checkout...");
+          onClose();
+        }
       } else {
         toast.error("No checkout URL returned");
       }
