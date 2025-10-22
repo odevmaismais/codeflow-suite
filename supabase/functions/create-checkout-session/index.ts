@@ -28,18 +28,7 @@ serve(async (req) => {
       );
     }
 
-    const priceId = Deno.env.get('STRIPE_PRO_PRICE_ID');
-    if (!priceId) {
-      console.error('STRIPE_PRO_PRICE_ID not configured');
-      return new Response(
-        JSON.stringify({ error: 'Stripe price not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
+    const priceId = 'price_1SKqme0G0TtfNHkLbsBWcEqs'; // DevFlow Pro - $29/month
     console.log('Creating checkout session with price:', priceId);
 
     const session = await stripe.checkout.sessions.create({
