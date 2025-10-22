@@ -22,7 +22,9 @@ import {
   Zap,
   Home,
   ChevronRight,
+  Download,
 } from 'lucide-react';
+import Papa from 'papaparse';
 import { LineChart, Line, PieChart, Pie, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks, subMonths } from 'date-fns';
 
@@ -343,6 +345,102 @@ const Analytics = () => {
     return `${hours.toFixed(1)}h`;
   };
 
+  const handleExportCSV = async () => {
+    if (!currentOrg) return;
+
+    const { start, end } = getDateRange();
+
+    let query = supabase
+      .from('time_entries')
+      .select(`
+        start_time,
+        duration_seconds,
+        description,
+        is_billable,
+        user_id,
+        project_id,
+        task_id
+      `)
+      .eq('organization_id', currentOrg.id)
+      .gte('start_time', start)
+      .lte('start_time', end)
+      .is('deleted_at', null)
+      .order('start_time');
+
+    if (filterUser !== 'all' && filterUser !== 'me') {
+      query = query.eq('user_id', filterUser);
+    } else if (filterUser === 'me') {
+      query = query.eq('user_id', user.id);
+    }
+
+    if (filterProject !== 'all') {
+      query = query.eq('project_id', filterProject);
+    }
+
+    if (billableOnly) {
+      query = query.eq('is_billable', true);
+    }
+
+    const { data: timeEntries } = await query;
+
+    if (!timeEntries || timeEntries.length === 0) {
+      toast({
+        title: 'No data to export',
+        description: 'No time entries found for the selected filters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Fetch related data
+    const userIds = [...new Set(timeEntries.map(e => e.user_id))];
+    const projectIds = [...new Set(timeEntries.map(e => e.project_id).filter(Boolean))];
+    const taskIds = [...new Set(timeEntries.map(e => e.task_id).filter(Boolean))];
+
+    const { data: usersData } = await supabase.rpc('get_org_members_with_emails', {
+      p_org_id: currentOrg.id
+    });
+
+    const { data: projectsData } = projectIds.length > 0
+      ? await supabase.from('projects').select('id, name').in('id', projectIds)
+      : { data: [] };
+
+    const { data: tasksData } = taskIds.length > 0
+      ? await supabase.from('tasks').select('id, code').in('id', taskIds)
+      : { data: [] };
+
+    // Map data
+    const userMap = new Map((usersData || []).map(u => [u.user_id, u.email] as [string, string]));
+    const projectMap = new Map((projectsData || []).map(p => [p.id, p.name] as [string, string]));
+    const taskMap = new Map((tasksData || []).map(t => [t.id, t.code] as [string, string]));
+
+    // Format data for CSV
+    const csvData = timeEntries.map(entry => ({
+      Date: format(new Date(entry.start_time), 'yyyy-MM-dd'),
+      User: userMap.get(entry.user_id) || 'Unknown',
+      Project: entry.project_id ? projectMap.get(entry.project_id) || 'Unknown' : 'Personal',
+      'Task Code': entry.task_id ? taskMap.get(entry.task_id) || '' : '',
+      'Duration (hours)': (entry.duration_seconds / 3600).toFixed(2),
+      Billable: entry.is_billable ? 'TRUE' : 'FALSE',
+    }));
+
+    // Generate CSV
+    const csv = Papa.unparse(csvData);
+    
+    // Download file
+    const filename = `analytics_export_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+
+    toast({
+      title: 'Export complete',
+      description: 'Analytics data exported successfully.',
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -369,7 +467,8 @@ const Analytics = () => {
       {/* Filters Bar */}
       <div className="border-b bg-card/30 backdrop-blur-sm sticky top-[73px] z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex flex-wrap gap-4 items-center">
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Date Range" />
@@ -444,16 +543,22 @@ const Analytics = () => {
               </SelectContent>
             </Select>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="billable" 
-                checked={billableOnly} 
-                onCheckedChange={(checked) => setBillableOnly(checked as boolean)}
-              />
-              <label htmlFor="billable" className="text-sm cursor-pointer">
-                Billable Only
-              </label>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="billable" 
+                  checked={billableOnly} 
+                  onCheckedChange={(checked) => setBillableOnly(checked as boolean)}
+                />
+                <label htmlFor="billable" className="text-sm cursor-pointer">
+                  Billable Only
+                </label>
+              </div>
             </div>
+
+            <Button onClick={handleExportCSV} variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
           </div>
         </div>
       </div>

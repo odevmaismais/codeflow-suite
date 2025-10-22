@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { signOut, getCurrentUser, getUserOrganizations, Organization } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, ChevronDown, Clock, LogOut, Settings, Users, FolderOpen, CheckSquare, Timer, ListChecks, Calendar, BarChart3 } from 'lucide-react';
+import { Building2, ChevronDown, Clock, LogOut, Settings, Users, FolderOpen, CheckSquare, Timer, ListChecks, Calendar, BarChart3, FileText } from 'lucide-react';
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -327,6 +327,27 @@ const Dashboard = () => {
                 onClick={() => navigate('/analytics')}
               >
                 View Analytics
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Reports
+              </CardTitle>
+              <CardDescription>
+                Generate billing and compliance reports
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => navigate('/reports')}
+              >
+                View Reports
               </Button>
             </CardContent>
           </Card>
