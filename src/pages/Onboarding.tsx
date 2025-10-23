@@ -335,6 +335,7 @@ const { data, error } = await supabase.rpc('create_organization_atomic' as any, 
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value)}
                       disabled={isLoading}
+                      autoFocus={tab === 'join'}
                       maxLength={10}
                       className="uppercase"
                       required
@@ -343,7 +344,16 @@ const { data, error } = await supabase.rpc('create_organization_atomic' as any, 
                       Enter the invite code provided by your organization admin
                     </p>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    aria-label="Join Organization"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleJoinOrg(e as any);
+                    }}
+                    className="w-full"
+                    disabled={isLoading}
+                  >
                     {isLoading ? 'Joining...' : 'Join Organization'}
                   </Button>
                 </form>
