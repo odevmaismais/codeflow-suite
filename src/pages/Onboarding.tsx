@@ -180,7 +180,7 @@ const { data, error } = await supabase.rpc('create_organization_atomic' as any, 
         code: z
           .string()
           .trim()
-          .regex(/^[A-Z]{3}-[A-Z0-9]{6}$/i, { message: 'Invite code format must be XXX-XXXXXX' })
+          .regex(/^[A-Z0-9]{3}-[A-Z0-9]{6}$/i, { message: 'Formato do código inválido. Use XXX-XXXXXX (letras e números)' })
           .transform((v) => v.toUpperCase()),
       });
 
