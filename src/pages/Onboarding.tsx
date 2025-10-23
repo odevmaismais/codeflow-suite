@@ -176,13 +176,13 @@ const { data, error } = await supabase.rpc('create_organization_atomic' as any, 
 
     console.log('[Onboarding] Join submit click', inviteCode);
 
-    const InviteSchema = z.object({
-      code: z
-        .string()
-        .trim()
-        .transform((v) => v.toUpperCase())
-        .regex(/^[A-Z]{3}-[A-Z0-9]{6}$/i, { message: 'Invite code format must be XXX-XXXXXX' }),
-    });
+      const InviteSchema = z.object({
+        code: z
+          .string()
+          .trim()
+          .regex(/^[A-Z]{3}-[A-Z0-9]{6}$/i, { message: 'Invite code format must be XXX-XXXXXX' })
+          .transform((v) => v.toUpperCase()),
+      });
 
     const parsed = InviteSchema.safeParse({ code: inviteCode });
     if (!parsed.success) {
