@@ -67,6 +67,51 @@ const DeveloperSettings = () => {
     }
   };
 
+  const handleFullWipe = async () => {
+    if (confirmAllText !== 'WIPE ALL') {
+      toast({
+        title: 'Invalid confirmation',
+        description: 'Please type "WIPE ALL" to confirm',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!currentOrg) return;
+
+    setIsWipingAll(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const { data, error } = await supabase.functions.invoke('reset-all', {
+        body: { orgId: currentOrg.id },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Complete wipe successful',
+        description: 'All data including organization and users have been deleted'
+      });
+
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error: any) {
+      toast({
+        title: 'Failed to wipe all data',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsWipingAll(false);
+    }
+  };
+
   const handleResetDatabase = async () => {
     if (confirmText !== 'RESET') {
       toast({
@@ -158,7 +203,7 @@ const DeveloperSettings = () => {
                     <h3 className="font-semibold mb-1">Reset Database</h3>
                     <p className="text-sm text-muted-foreground">
                       Delete all data for this organization (projects, tasks, time entries, etc.). 
-                      This action cannot be undone.
+                      Organization and users remain intact.
                     </p>
                   </div>
                   <Button
@@ -167,6 +212,23 @@ const DeveloperSettings = () => {
                     className="shrink-0"
                   >
                     ⚠️ Reset Database
+                  </Button>
+                </div>
+
+                <div className="flex items-start justify-between gap-4 pt-4 border-t border-destructive">
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-1">Full Wipe (Nuclear Option)</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Delete EVERYTHING: organization, all users, all data. 
+                      You will be logged out immediately.
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowFullWipeDialog(true)}
+                    className="shrink-0"
+                  >
+                    💣 Full Wipe
                   </Button>
                 </div>
               </div>
@@ -255,6 +317,71 @@ const DeveloperSettings = () => {
                 </>
               ) : (
                 'Reset Database'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full Wipe Confirmation Dialog */}
+      <Dialog open={showFullWipeDialog} onOpenChange={setShowFullWipeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Full Wipe - Nuclear Option
+            </DialogTitle>
+            <DialogDescription>
+              This will <strong>DELETE EVERYTHING</strong> including:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>The entire organization "{currentOrg?.name}"</li>
+                <li>All users in this organization</li>
+                <li>All projects, tasks, teams, and data</li>
+                <li>All subscriptions and billing info</li>
+              </ul>
+              <p className="mt-4 font-semibold text-destructive">
+                You will be logged out immediately after this operation.
+                This action is IRREVERSIBLE!
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="confirm-all-text">
+                Type <code className="bg-destructive/10 px-2 py-1 rounded font-mono text-destructive">WIPE ALL</code> to confirm
+              </Label>
+              <Input
+                id="confirm-all-text"
+                value={confirmAllText}
+                onChange={(e) => setConfirmAllText(e.target.value)}
+                placeholder="WIPE ALL"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowFullWipeDialog(false);
+                setConfirmAllText('');
+              }}
+              disabled={isWipingAll}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleFullWipe}
+              disabled={confirmAllText !== 'WIPE ALL' || isWipingAll}
+            >
+              {isWipingAll ? (
+                <>
+                  <Clock className="mr-2 h-4 w-4 animate-spin" />
+                  Wiping...
+                </>
+              ) : (
+                '💣 Wipe Everything'
               )}
             </Button>
           </DialogFooter>

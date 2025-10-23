@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   FolderOpen,
@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Settings,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -31,6 +32,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { useState } from 'react';
+import { signOut } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 const mainNavItems = [
   { title: 'Home', url: '/dashboard', icon: Home },
@@ -52,6 +55,8 @@ const settingsItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [settingsOpen, setSettingsOpen] = useState(
     location.pathname.startsWith('/settings')
   );
@@ -59,6 +64,19 @@ export function AppSidebar() {
   const isCollapsed = state === 'collapsed';
   const isActive = (path: string) => location.pathname === path;
   const isSettingsActive = location.pathname.startsWith('/settings');
+
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: 'Error signing out',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      navigate('/auth');
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -110,6 +128,20 @@ export function AppSidebar() {
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Logout Button */}
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
