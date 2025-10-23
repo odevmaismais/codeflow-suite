@@ -82,6 +82,7 @@ const Onboarding = () => {
   const [orgName, setOrgName] = useState('');
   const [timezone, setTimezone] = useState(detectBrowserTimezone());
   const [inviteCode, setInviteCode] = useState('');
+  const [defaultTab, setDefaultTab] = useState<'create' | 'join'>('create');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -91,7 +92,10 @@ const Onboarding = () => {
 
   const checkExistingOrgs = async () => {
     const orgs = await getUserOrganizations();
-    if (orgs.length > 0) {
+    const params = new URLSearchParams(window.location.search);
+    const allowJoin = params.get('join') === '1';
+    if (allowJoin) setDefaultTab('join');
+    if (orgs.length > 0 && !allowJoin) {
       navigate('/dashboard');
     }
   };
@@ -258,7 +262,7 @@ const { data, error } = await supabase.rpc('join_organization_via_invite' as any
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="create" className="w-full">
+            <Tabs defaultValue={defaultTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="create">
                   <Building2 className="mr-2 h-4 w-4" />
