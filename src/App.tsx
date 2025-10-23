@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Teams from "./pages/Teams";
 import TeamDetails from "./pages/TeamDetails";
+import TeamSettings from "./pages/settings/TeamSettings";
 import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
 import Tasks from "./pages/Tasks";
@@ -142,6 +143,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <TimesheetApprovals />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/teams"
+              element={
+                <ProtectedRoute>
+                  <TeamSettings />
                 </ProtectedRoute>
               }
             />

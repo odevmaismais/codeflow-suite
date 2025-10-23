@@ -9,6 +9,7 @@ import {
   FileText,
   BarChart3,
   Settings,
+  Users,
   LogOut
 } from "lucide-react";
 import { useTimer } from "@/contexts/TimerContext";
@@ -38,6 +39,7 @@ export function Sidebar() {
     { to: "/timesheets", icon: Calendar, label: "Timesheets" },
     { to: "/reports", icon: FileText, label: "Reports" },
     { to: "/analytics", icon: BarChart3, label: "Analytics" },
+    { to: "/settings/teams", icon: Users, label: "Team" },
     { to: "/settings/billing", icon: Settings, label: "Settings" },
   ];
 
