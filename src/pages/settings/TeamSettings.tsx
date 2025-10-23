@@ -115,8 +115,11 @@ export default function TeamSettings() {
     mutationFn: async () => {
       if (!currentOrgId || !currentUserId) throw new Error("Missing organization or user ID.");
       
-      // Generate a random code
-      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      // Generate code using database function
+      const { data: codeData, error: codeError } = await supabase.rpc('generate_invite_code');
+      if (codeError) throw codeError;
+      
+      const code = codeData as string;
       
       const { data, error } = await supabase
         .from("invite_codes")
@@ -145,14 +148,20 @@ export default function TeamSettings() {
   // Mutation for deleting invite code
   const deleteInviteCodeMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log("Attempting to delete invite code:", id);
       const { error } = await supabase.from("invite_codes").delete().eq("id", id);
-      if (error) throw error;
+      if (error) {
+        console.error("Delete error:", error);
+        throw error;
+      }
+      console.log("Invite code deleted successfully");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inviteCodes"] });
       toast.success("Invite code deleted.");
     },
     onError: (error: any) => {
+      console.error("Delete mutation error:", error);
       toast.error(`Failed to delete invite code: ${error.message}`);
     },
   });
