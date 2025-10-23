@@ -82,7 +82,7 @@ const Onboarding = () => {
   const [orgName, setOrgName] = useState('');
   const [timezone, setTimezone] = useState(detectBrowserTimezone());
   const [inviteCode, setInviteCode] = useState('');
-  const [defaultTab, setDefaultTab] = useState<'create' | 'join'>('create');
+  const [tab, setTab] = useState<'create' | 'join'>('create');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -94,7 +94,7 @@ const Onboarding = () => {
     const orgs = await getUserOrganizations();
     const params = new URLSearchParams(window.location.search);
     const allowJoin = params.get('join') === '1';
-    if (allowJoin) setDefaultTab('join');
+    if (allowJoin) setTab('join');
     if (orgs.length > 0 && !allowJoin) {
       navigate('/dashboard');
     }
@@ -174,6 +174,8 @@ const { data, error } = await supabase.rpc('create_organization_atomic' as any, 
   const handleJoinOrg = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('[Onboarding] Join submit click', inviteCode);
+
     const InviteSchema = z.object({
       code: z
         .string()
@@ -193,15 +195,20 @@ const { data, error } = await supabase.rpc('create_organization_atomic' as any, 
     try {
       const user = await getCurrentUser();
       if (!user) throw new Error('Not authenticated');
+      console.log('[Onboarding] User OK', user.id);
 
-const { data, error } = await supabase.rpc('join_organization_via_invite' as any, {
+      const { data, error } = await supabase.rpc('join_organization_via_invite' as any, {
         p_invite_code: parsed.data.code,
         p_user_id: user.id,
       });
-      if (error) throw error;
+      if (error) {
+        console.error('[Onboarding] RPC error', error);
+        throw error;
+      }
 
       const orgId = (data as string) || '';
       if (!orgId) throw new Error('Failed to join organization');
+      console.log('[Onboarding] Joined org', orgId);
 
       // Store in localStorage immediately
       try {
@@ -262,7 +269,7 @@ const { data, error } = await supabase.rpc('join_organization_via_invite' as any
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue={defaultTab} className="w-full">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as 'create' | 'join')} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="create">
                   <Building2 className="mr-2 h-4 w-4" />
