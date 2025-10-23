@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TimerProvider } from "@/contexts/TimerContext";
 import { QuickTimerWidget } from "@/components/QuickTimerWidget";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
@@ -36,24 +37,146 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            {/* Public routes */}
             <Route path="/auth" element={<Auth />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/teams" element={<Teams />} />
-            <Route path="/teams/:teamId" element={<TeamDetails />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:projectId" element={<ProjectDetails />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/tasks/:taskId" element={<TaskDetails />} />
-            <Route path="/time-entries" element={<TimeEntries />} />
-            <Route path="/timesheets" element={<Timesheets />} />
-            <Route path="/timesheets/approvals" element={<TimesheetApprovals />} />
-            <Route path="/settings/billing" element={<Billing />} />
-            <Route path="/settings/developer" element={<DeveloperSettings />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/reports" element={<Reports />} />
+
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teams"
+              element={
+                <ProtectedRoute>
+                  <Teams />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teams/:teamId"
+              element={
+                <ProtectedRoute>
+                  <TeamDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects"
+              element={
+                <ProtectedRoute>
+                  <Projects />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId"
+              element={
+                <ProtectedRoute>
+                  <ProjectDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedRoute>
+                  <Tasks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks/:taskId"
+              element={
+                <ProtectedRoute>
+                  <TaskDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/time-entries"
+              element={
+                <ProtectedRoute>
+                  <TimeEntries />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/timesheets"
+              element={
+                <ProtectedRoute>
+                  <Timesheets />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/timesheets/approvals"
+              element={
+                <ProtectedRoute>
+                  <TimesheetApprovals />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/billing"
+              element={
+                <ProtectedRoute>
+                  <Billing />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/developer"
+              element={
+                <ProtectedRoute>
+                  <DeveloperSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
             {/* Error Pages */}
             <Route path="/403" element={<AccessDenied />} />
             <Route path="/500" element={<ServerError />} />

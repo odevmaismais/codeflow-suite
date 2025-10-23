@@ -24,6 +24,9 @@ const DeveloperSettings = () => {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [showFullWipeDialog, setShowFullWipeDialog] = useState(false);
+  const [confirmAllText, setConfirmAllText] = useState('');
+  const [isWipingAll, setIsWipingAll] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
