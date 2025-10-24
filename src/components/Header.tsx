@@ -57,34 +57,36 @@ export function Header() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("organizations")
-        .insert({
-          name: orgName,
-          slug: orgName.toLowerCase().replace(/\s+/g, "-"),
-        })
-        .select()
-        .single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
+      // Use atomic function to create org with proper error handling
+      const { data, error } = await supabase.rpc("create_organization_atomic", {
+        p_user_id: user.id,
+        p_org_name: orgName,
+        p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
 
       if (error) throw error;
 
-      // Add current user as admin
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && data) {
-        await supabase.from("user_organizations").insert({
-          user_id: user.id,
-          organization_id: data.id,
-          role: "admin",
-        });
+      const result = data as any;
+      if (!result?.success) {
+        throw new Error(result?.error || "Erro ao criar organização");
       }
 
       toast.success("Organização criada com sucesso!");
       setCreateOrgOpen(false);
       setOrgName("");
-      loadUserData();
+      
+      // Switch to the new organization
+      localStorage.setItem("activeOrgId", result.organization_id);
+      window.location.reload();
     } catch (error: any) {
       console.error("Error creating organization:", error);
-      toast.error("Erro ao criar organização");
+      toast.error(error.message || "Erro ao criar organização");
     } finally {
       setLoading(false);
     }

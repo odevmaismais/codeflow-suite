@@ -78,7 +78,7 @@ const Settings = () => {
   const loadMembers = async (orgId: string) => {
     const { data, error } = await supabase
       .from('user_organizations')
-      .select('id, user_id, role, created_at')
+      .select('id, user_id, role, joined_at')
       .eq('organization_id', orgId);
 
     if (error) {
@@ -89,6 +89,7 @@ const Settings = () => {
     // Fetch user emails (Note: In production, you'd get this from a profiles table)
     const membersWithEmails = data.map(member => ({
       ...member,
+      created_at: member.joined_at, // Map joined_at to created_at for backward compatibility
       email: 'user@example.com' // Placeholder - would come from profiles table
     }));
 
