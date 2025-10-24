@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
+import { Header } from './Header';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -10,8 +11,9 @@ interface PageLayoutProps {
 export function PageLayout({ children, title, breadcrumbs }: PageLayoutProps) {
   return (
     <div className="flex min-h-screen bg-background">
+      <Header />
       <Sidebar />
-      <main className="flex-1 ml-60 p-8">
+      <main className="flex-1 ml-60 mt-16 p-8">
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav className="mb-4 text-sm text-muted-foreground">
             {breadcrumbs.map((crumb, index) => (
