@@ -89,6 +89,9 @@ const DeveloperSettings = () => {
 
       const { data, error } = await supabase.functions.invoke('reset-all', {
         body: { orgId: currentOrg.id },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (error) throw error;
