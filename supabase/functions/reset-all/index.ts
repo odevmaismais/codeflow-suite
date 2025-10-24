@@ -86,7 +86,8 @@ serve(async (req) => {
     }
 
     // First, call existing DB function to clear all org data (children tables)
-    const { error: resetError } = await supabaseAdmin.rpc('reset_database_for_org', {
+    // IMPORTANT: Call with the authenticated user's context so auth.uid() works inside the function
+    const { error: resetError } = await supabaseAuthClient.rpc('reset_database_for_org', {
       p_org_id: orgId,
     });
     if (resetError) {
