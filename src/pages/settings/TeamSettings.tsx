@@ -246,7 +246,7 @@ export default function TeamSettings() {
                       <Select
                         value={member.role}
                         onValueChange={(newRole) => updateMemberRoleMutation.mutate({ userId: member.user_id, newRole })}
-                        disabled={member.user_id === currentUserId || !isAdminOrManager}
+                        disabled={member.user_id === currentUserId || !isAdmin}
                       >
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Select role" />
@@ -254,12 +254,6 @@ export default function TeamSettings() {
                         <SelectContent>
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="manager">Manager</SelectItem>
-                          <SelectItem value="tech_lead">Tech Lead</SelectItem>
-                          <SelectItem value="developer">Developer</SelectItem>
-                          <SelectItem value="qa_tester">QA Tester</SelectItem>
-                          <SelectItem value="business_analyst">Business Analyst</SelectItem>
-                          <SelectItem value="scrum_master">Scrum Master</SelectItem>
-                          <SelectItem value="product_owner">Product Owner</SelectItem>
                           <SelectItem value="member">Member</SelectItem>
                         </SelectContent>
                       </Select>
