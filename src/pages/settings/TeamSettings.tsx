@@ -30,8 +30,8 @@ import {
 import { useNavigate } from "react-router-dom";
 
 interface Member {
-  id: string;
   user_id: string;
+  email: string;
   role: string;
   joined_at: string;
 }
@@ -76,19 +76,17 @@ export default function TeamSettings() {
     loadUserAndOrg();
   }, [navigate]);
 
-  // Fetch Organization Members
+  // Fetch Organization Members with emails
   const { data: members, isLoading: isLoadingMembers } = useQuery<Member[]>({
     queryKey: ["organizationMembers", currentOrgId],
     queryFn: async () => {
       if (!currentOrgId) return [];
-      const { data, error } = await supabase
-        .from("user_organizations")
-        .select("id, user_id, role, joined_at")
-        .eq("organization_id", currentOrgId)
-        .order("joined_at", { ascending: true });
+      const { data, error } = await supabase.rpc("get_org_members_with_emails", {
+        p_org_id: currentOrgId,
+      });
       
       if (error) throw error;
-      return data;
+      return data as Member[];
     },
     enabled: !!currentOrgId,
   });
@@ -234,7 +232,7 @@ export default function TeamSettings() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User ID</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -242,8 +240,8 @@ export default function TeamSettings() {
               </TableHeader>
               <TableBody>
                 {members.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-mono text-sm">{member.user_id.substring(0, 8)}...</TableCell>
+                  <TableRow key={member.user_id}>
+                    <TableCell className="font-medium">{member.email}</TableCell>
                     <TableCell>
                       <Select
                         value={member.role}
