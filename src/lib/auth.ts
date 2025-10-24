@@ -53,17 +53,22 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 
 export async function getUserOrganizations(): Promise<Organization[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
   const { data, error } = await supabase
     .from('user_organizations' as any)
     .select(`
       role,
-      organizations (
+      organizations!inner (
         id,
         name,
         slug,
         timezone
       )
     `)
+    .eq('user_id', user.id)
+    .is('organizations.deleted_at', null)
     .order('joined_at', { ascending: true });
 
   if (error) {
@@ -71,13 +76,23 @@ export async function getUserOrganizations(): Promise<Organization[]> {
     return [];
   }
 
-  return data.map((item: any) => ({
-    id: item.organizations.id,
-    name: item.organizations.name,
-    slug: item.organizations.slug,
-    timezone: item.organizations.timezone,
-    role: item.role
-  }));
+  if (!data) return [];
+
+  // Remove duplicates based on organization id
+  const uniqueOrgs = new Map();
+  data.forEach((item: any) => {
+    if (item.organizations && !uniqueOrgs.has(item.organizations.id)) {
+      uniqueOrgs.set(item.organizations.id, {
+        id: item.organizations.id,
+        name: item.organizations.name,
+        slug: item.organizations.slug,
+        timezone: item.organizations.timezone,
+        role: item.role
+      });
+    }
+  });
+
+  return Array.from(uniqueOrgs.values());
 }
 
 export async function getCurrentOrganization(): Promise<Organization | null> {
