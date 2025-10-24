@@ -1030,6 +1030,10 @@ export type Database = {
           role: string
         }[]
       }
+      is_org_admin: {
+        Args: { p_org_id: string; p_user_id: string }
+        Returns: boolean
+      }
       is_team_tech_lead: {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
