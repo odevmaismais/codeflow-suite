@@ -1017,6 +1017,12 @@ export type Database = {
         }[]
       }
       get_user_email: { Args: { p_user_id: string }; Returns: string }
+      get_user_org_ids: {
+        Args: { p_user_id: string }
+        Returns: {
+          organization_id: string
+        }[]
+      }
       get_user_organizations: {
         Args: { p_user_id: string }
         Returns: {
